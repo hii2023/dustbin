@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>Sort It Right | India Recycles</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Noto+Sans+Gujarati:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #eef2ee; --bg2: #e2e9e2; --card: #ffffff;
+    --ink: #17211c; --muted: #6b7770; --line: #e0e6e1;
+    --green: #1f9d55; --green-d: #16773f; --blue: #1565c0; --red: #d32f2f; --slate: #37474f;
+    --shadow: 0 12px 34px rgba(20, 40, 30, 0.10); --shadow-sm: 0 4px 12px rgba(20, 40, 30, 0.08);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; }
+  body {
+    font-family: "IBM Plex Sans", "Noto Sans Gujarati", system-ui, sans-serif;
+    background: var(--bg2); color: var(--ink);
+    display: flex; justify-content: center; min-height: 100dvh; overflow: hidden;
+  }
+  .gu { font-family: "Noto Sans Gujarati", "IBM Plex Sans", sans-serif; }
+  .app { width: 100%; max-width: 480px; min-height: 100dvh; display: flex; flex-direction: column; position: relative; }
+
+  /* Header */
+  header { padding: 12px 16px 4px; display: flex; align-items: center; justify-content: space-between; gap: 8px; z-index: 5; }
+  .logo { height: 24px; width: auto; display: block; background: #fff; padding: 6px 9px; border-radius: 10px; box-shadow: var(--shadow-sm); }
+  .head-right { display: flex; align-items: center; gap: 8px; }
+  .icon-btn { border: 1px solid var(--line); background: var(--card); border-radius: 999px; padding: 6px 12px; font-size: 12px; font-weight: 600; color: var(--muted); cursor: pointer; line-height: 1; height: 32px; display: inline-flex; align-items: center; gap: 4px; font-family: inherit; }
+  .icon-btn:active { transform: scale(.95); }
+
+  /* Stats */
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 4px 16px 6px; z-index: 5; }
+  .stat { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 8px 6px; text-align: center; box-shadow: var(--shadow-sm); }
+  .stat .num { font-size: 20px; font-weight: 700; line-height: 1; }
+  .stat .lbl { font-size: 9px; color: var(--muted); font-weight: 600; margin-top: 3px; text-transform: uppercase; letter-spacing: .05em; }
+  .stat.streak .num { color: var(--green); }
+  .stat .num.pop { animation: numPop .42s ease; }
+  @keyframes numPop { 0%,100%{transform:scale(1)} 40%{transform:scale(1.4)} }
+  .stat.streak .num.pop { color: #ff7a18; }
+  .progress-wrap { padding: 0 16px 2px; z-index: 5; }
+  .progress-track { height: 6px; background: #d8e0d8; border-radius: 999px; overflow: hidden; }
+  .progress-fill { height: 100%; width: 0; background: linear-gradient(90deg, var(--green), #4cc47f); border-radius: 999px; transition: width .3s ease; }
+
+  /* ---------- Play scene (bins at a distance) ---------- */
+  .play {
+    flex: 1; position: relative; display: flex; flex-direction: column; align-items: center;
+    padding: 6px 12px 0; overflow: hidden;
+    background: linear-gradient(180deg, #eef3f1 0%, #e9efec 44%, #e9efec 45%, #dfe6e0 46%, #d9e1da 100%);
+  }
+  /* scene: AMC bins on footpath, zebra-crossing asphalt road in front */
+  .scene { position: absolute; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+  .scene svg { width: 100%; height: 100%; display: block; }
+
+  /* distant bin row */
+  .far { width: 100%; display: flex; justify-content: center; align-items: flex-end; gap: 20px; padding-top: 8px; z-index: 2; }
+
+  .bin { flex: 0 0 auto; width: 104px; display: flex; flex-direction: column; align-items: center; cursor: pointer; background: none; border: none; padding: 0; font-family: inherit; transition: transform .12s ease; }
+  .bin:active { transform: scale(.96) translateY(2px); }
+  .bin:hover .hood { transform: translateY(-2px); }
+
+  /* smooth domed hood (AMC style) */
+  .hood { position: relative; z-index: 2; width: 94%; height: 32px; border-radius: 50% 50% 12px 12px / 100% 100% 14px 14px; box-shadow: 0 4px 7px rgba(0,0,0,.26); transition: transform .2s ease; overflow: hidden; }
+  .hood::after { content: ""; position: absolute; inset: 0; border-radius: inherit; background: linear-gradient(180deg, rgba(255,255,255,.30), transparent 60%); }
+  /* tall cylindrical body with AMC label */
+  .body { width: 100%; min-height: 152px; margin-top: -5px; border-radius: 10px 10px 13px 13px; color: #fff; position: relative; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; padding: 16px 6px 14px; box-shadow: var(--shadow-sm); }
+  .body::before { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(90deg, rgba(0,0,0,.26), rgba(0,0,0,0) 22%, rgba(255,255,255,.16) 50%, rgba(0,0,0,0) 78%, rgba(0,0,0,.26)); }
+  .l1 { font-size: 8px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; opacity: .96; z-index: 1; text-align: center; line-height: 1.15; }
+  .l2 { font-size: 23px; font-weight: 800; letter-spacing: .04em; z-index: 1; line-height: 1; text-shadow: 0 1px 2px rgba(0,0,0,.32); }
+  .l3 { font-size: 10px; font-weight: 700; z-index: 1; margin-top: 2px; }
+  .swan { width: 17px; height: 17px; margin-top: 5px; fill: #fff; opacity: .82; z-index: 1; }
+  .legs { position: relative; width: 80%; height: 20px; margin-top: -2px; z-index: 0; display: flex; justify-content: space-between; }
+  .legs::before { content: ""; position: absolute; top: 2px; left: 4%; right: 4%; height: 4px; background: #1e1e1e; border-radius: 2px; }
+  .legs i { width: 6px; height: 20px; background: linear-gradient(90deg, #2c2c2c, #101010); border-radius: 0 0 2px 2px; }
+  .legs i:first-child { transform: rotate(7deg); } .legs i:last-child { transform: rotate(-7deg); }
+  .bshadow { width: 86%; height: 12px; margin-top: 3px; border-radius: 50%; background: radial-gradient(ellipse at center, rgba(0,0,0,.34), transparent 70%); }
+
+  .bin.green .hood { background: #2c8b3e; } .bin.green .body { background: linear-gradient(180deg, #47a94f, #2f8a3e); }
+  .bin.blue  .hood { background: #1c39a0; } .bin.blue  .body { background: linear-gradient(180deg, #2f4fd0, #1e39a8); }
+  .bin.red   .hood { background: #c62f2f; } .bin.red   .body { background: linear-gradient(180deg, #e84a4a, #c22626); }
+  .bin.slate .hood { background: #40525c; } .bin.slate .body { background: linear-gradient(180deg, #5c7783, #384850); }
+
+  /* mini bins for the start-screen picker */
+  .mini-bin { width: 42px; display: flex; flex-direction: column; align-items: center; }
+  .mini-hood { position: relative; width: 98%; height: 14px; border-radius: 60% 60% 4px 4px / 96% 96% 4px 4px; overflow: hidden; }
+  .mini-arch { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 40%; height: 9px; background: #0c160f; border-radius: 50% 50% 0 0 / 100% 100% 0 0; }
+  .mini-body { width: 100%; height: 36px; margin-top: -2px; border-radius: 5px 5px 7px 7px; }
+  .mini-bin.green .mini-hood{background:#2c8b3e} .mini-bin.green .mini-body{background:linear-gradient(180deg,#47a94f,#2f8a3e)}
+  .mini-bin.blue  .mini-hood{background:#1c39a0} .mini-bin.blue  .mini-body{background:linear-gradient(180deg,#2f4fd0,#1e39a8)}
+  .mini-bin.red   .mini-hood{background:#c62f2f} .mini-bin.red   .mini-body{background:linear-gradient(180deg,#e84a4a,#c22626)}
+  .mini-bin.slate .mini-hood{background:#40525c} .mini-bin.slate .mini-body{background:linear-gradient(180deg,#5c7783,#384850)}
+
+  .bin.gulp .body { animation: gulp .5s ease; }
+  @keyframes gulp { 0%,100%{transform:translateY(0) scaleX(1)} 30%{transform:translateY(-7px) scaleX(1.05)} 60%{transform:translateY(0) scaleX(.96)} }
+  .bin.gulp .hood { animation: swallow .45s ease; }
+  @keyframes swallow { 0%,100%{transform:scaleY(1)} 45%{transform:scaleY(.82) translateY(3px)} }
+  .bin.hint { animation: hintPulse 1s ease infinite; }
+  .bin.hint .hood, .bin.hint .body { outline: 3px solid rgba(255,255,255,.92); outline-offset: 1px; }
+  @keyframes hintPulse { 0%,100%{filter:drop-shadow(0 0 0 rgba(211,47,47,0))} 50%{filter:drop-shadow(0 0 11px rgba(211,47,47,.6))} }
+
+  /* prompt */
+  .prompt { margin-top: 10px; font-size: 12.5px; color: #fff; font-weight: 700; text-align: center; z-index: 4; background: rgba(0,0,0,.34); padding: 6px 15px; border-radius: 999px; box-shadow: var(--shadow-sm); }
+
+  /* toast */
+  .toast { position: absolute; top: 46%; left: 50%; transform: translate(-50%,-50%) scale(.9); padding: 9px 18px; border-radius: 999px; font-size: 16px; font-weight: 700; color: #fff; opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; white-space: nowrap; box-shadow: var(--shadow); z-index: 40; }
+  .toast.show { opacity: 1; transform: translate(-50%,-50%) scale(1); }
+  .toast.good { background: var(--green); }
+
+  /* ---------- Thrower (bottom center) ---------- */
+  .thrower { margin-top: auto; position: relative; display: flex; flex-direction: column; align-items: center; padding-bottom: calc(8px + env(safe-area-inset-bottom)); z-index: 3; }
+  .held { position: relative; display: flex; flex-direction: column; align-items: center; animation: bob 2.8s ease-in-out infinite; }
+  @keyframes bob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+  .held .bubble { background: var(--card); border: 1px solid var(--line); border-radius: 20px; box-shadow: var(--shadow); padding: 13px 18px 11px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 148px; position: relative; z-index: 2; }
+  .held .bubble::after { content: ""; position: absolute; bottom: -9px; left: 50%; transform: translateX(-50%) rotate(45deg); width: 18px; height: 18px; background: var(--card); border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+  .held .h-emoji { font-size: 58px; line-height: 1; filter: drop-shadow(0 6px 8px rgba(0,0,0,.14)); }
+  .held .h-gu { font-size: 15px; font-weight: 600; margin-top: 2px; }
+  .held .h-en { font-size: 12px; color: var(--muted); font-weight: 500; }
+  .hand-emoji { font-size: 86px; line-height: 1; margin-top: -12px; filter: drop-shadow(0 8px 10px rgba(0,0,0,.16)); z-index: 1; will-change: transform; animation: handIdle 3.2s ease-in-out infinite; }
+  .hand-real { width: 134px; height: auto; margin-top: -10px; z-index: 1; filter: drop-shadow(0 8px 11px rgba(0,0,0,.24)); will-change: transform; animation: handIdle 3.2s ease-in-out infinite; }
+  @keyframes handIdle { 0%,100%{transform:translateY(0) rotate(0)} 50%{transform:translateY(-6px) rotate(-5deg)} }
+  .hand-shadow { width: 90px; height: 12px; margin-top: -4px; border-radius: 50%; background: radial-gradient(ellipse at center, rgba(0,0,0,.18), transparent 70%); }
+
+  .held.hidden-item .bubble { opacity: 0; transform: scale(.5) translateY(8px); transition: opacity .12s, transform .12s; }
+  .held.enter .bubble { animation: pop .4s cubic-bezier(.2,.9,.3,1.5); }
+  @keyframes pop { 0%{transform:scale(.35) rotate(-8deg); opacity:0} 60%{transform:scale(1.08) rotate(2deg)} 100%{transform:scale(1) rotate(0); opacity:1} }
+
+  /* projectile + depth cues */
+  .projectile { position: fixed; font-size: 54px; z-index: 50; pointer-events: none; will-change: transform, left, top; filter: drop-shadow(0 6px 8px rgba(0,0,0,.2)); }
+  .proj-shadow { position: fixed; width: 46px; height: 14px; border-radius: 50%; background: radial-gradient(ellipse at center, rgba(0,0,0,.28), transparent 72%); z-index: 1; pointer-events: none; will-change: transform, left, top; }
+  .ghost { position: fixed; z-index: 48; pointer-events: none; opacity: .32; filter: blur(1px); animation: ghostFade .28s ease-out forwards; }
+  @keyframes ghostFade { to { opacity: 0; } }
+  .puff { position: fixed; width: 30px; height: 12px; border-radius: 50%; background: rgba(180,190,180,.65); transform: translate(-50%,-50%); z-index: 3; pointer-events: none; animation: puff .45s ease-out forwards; }
+  @keyframes puff { 0%{opacity:.7; transform:translate(-50%,-50%) scale(.4)} 100%{opacity:0; transform:translate(-50%,-50%) scale(1.9)} }
+  .confetti { position: fixed; width: 8px; height: 8px; border-radius: 2px; z-index: 60; pointer-events: none; animation: confPop .75s ease-out forwards; }
+  @keyframes confPop { 0%{transform:translate(0,0) scale(1) rotate(0); opacity:1} 100%{transform:translate(var(--tx),var(--ty)) scale(.3) rotate(220deg); opacity:0} }
+
+  /* ---------- Error card ---------- */
+  .error-card { position: absolute; left: 12px; right: 12px; top: 8px; z-index: 20; background: #fff5f5; border: 2px solid var(--red); border-radius: 18px; box-shadow: var(--shadow); padding: 14px 16px; text-align: left; display: none; animation: errIn .28s cubic-bezier(.2,.9,.3,1.3); }
+  @keyframes errIn { 0%{opacity:0; transform:translateY(-10px) scale(.96)} 100%{opacity:1; transform:none} }
+  .error-card.show { display: block; }
+  .error-card .err-top { display: flex; align-items: center; gap: 10px; }
+  .error-card .err-emoji { font-size: 34px; line-height: 1; }
+  .error-card .err-x { color: var(--red); font-weight: 700; font-size: 13px; letter-spacing: .02em; text-transform: uppercase; }
+  .error-card .err-line { font-size: 15px; font-weight: 600; margin-top: 2px; line-height: 1.35; }
+  .error-card .chip { display: inline-flex; align-items: center; gap: 5px; color: #fff; padding: 2px 10px; border-radius: 999px; font-size: 13px; font-weight: 700; vertical-align: middle; }
+  .chip.wet{background:var(--green-d)} .chip.dry{background:var(--blue)} .chip.hazard{background:var(--red)} .chip.ewaste{background:var(--slate)}
+  .error-card .err-why { font-size: 13px; color: #7a4a4a; margin-top: 8px; line-height: 1.5; }
+  .error-card .err-why .en { color: var(--muted); }
+  .error-card .gotit { margin-top: 12px; width: 100%; background: var(--red); color: #fff; border: none; padding: 11px; border-radius: 12px; font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit; }
+  .error-card .gotit:active { transform: translateY(1px); }
+
+  /* ---------- Overlays ---------- */
+  .overlay { position: absolute; inset: 0; background: rgba(238, 242, 238, .97); backdrop-filter: blur(5px); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 26px; z-index: 30; gap: 4px; overflow-y: auto; }
+  .overlay.hidden { display: none; }
+  .overlay .o-logo { height: 38px; margin-bottom: 12px; background: #fff; padding: 11px 15px; border-radius: 16px; box-shadow: var(--shadow-sm); }
+  .overlay h2 { font-size: 26px; font-weight: 700; }
+  .overlay .sub { font-size: 13.5px; color: var(--muted); max-width: 320px; line-height: 1.5; margin-top: 3px; }
+  .overlay .final-score { font-size: 46px; font-weight: 700; color: var(--green); margin: 2px 0; }
+
+  /* bin picker */
+  .picker { margin-top: 16px; width: 100%; max-width: 340px; }
+  .picker-title { font-size: 12px; font-weight: 600; color: var(--ink); margin-bottom: 8px; }
+  .picker-title .gu { display: block; color: var(--muted); font-weight: 500; font-size: 11px; }
+  .chips { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+  .chip-sel { position: relative; border: 2px solid var(--line); border-radius: 16px; padding: 10px 8px 8px; display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; background: #fff; width: 74px; opacity: .55; transition: .15s; }
+  .chip-sel.on { opacity: 1; box-shadow: var(--shadow-sm); }
+  .chip-sel.on.wet { border-color: var(--green); } .chip-sel.on.dry { border-color: var(--blue); }
+  .chip-sel.on.hazard { border-color: var(--red); } .chip-sel.on.ewaste { border-color: var(--slate); }
+  .chip-sel .ci { font-size: 22px; line-height: 1; }
+  .chip-sel .cl { font-size: 11px; font-weight: 700; }
+  .chip-sel .cl2 { font-size: 8.5px; color: var(--muted); font-weight: 500; }
+  .chip-sel .tick { position: absolute; top: -8px; right: -8px; width: 20px; height: 20px; border-radius: 50%; background: var(--green); color: #fff; font-size: 12px; display: none; align-items: center; justify-content: center; box-shadow: var(--shadow-sm); }
+  .chip-sel.on .tick { display: flex; }
+  .picker-hint { font-size: 11px; color: var(--muted); margin-top: 8px; min-height: 14px; }
+
+  .btn { margin-top: 16px; background: var(--green); color: #fff; border: none; padding: 14px 44px; border-radius: 999px; font-size: 16px; font-weight: 700; cursor: pointer; box-shadow: 0 8px 20px rgba(31,157,85,.34); font-family: inherit; }
+  .btn:active { transform: translateY(2px); }
+  .btn:disabled { opacity: .5; box-shadow: none; }
+  .rules { margin-top: 14px; display: flex; gap: 14px; justify-content: center; font-size: 12px; color: var(--muted); flex-wrap: wrap; }
+  .rules div { display: flex; align-items: center; gap: 5px; }
+  .rules b { color: var(--ink); }
+  .credit { margin-top: 16px; font-size: 11px; color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header>
+    <img class="logo" src="assets/india-recycles-logo.png" alt="India Recycles" />
+    <div class="head-right">
+      <button class="icon-btn" id="soundBtn" title="Sound">🔊</button>
+      <button class="icon-btn" id="langBtn">EN / ગુ</button>
+    </div>
+  </header>
+
+  <div class="stats">
+    <div class="stat"><div class="num" id="score">0</div><div class="lbl" data-en="Score" data-gu="સ્કોર">Score</div></div>
+    <div class="stat streak"><div class="num" id="streak">0</div><div class="lbl" data-en="Streak" data-gu="સ્ટ્રીક">Streak</div></div>
+    <div class="stat"><div class="num" id="best">0</div><div class="lbl" data-en="Best" data-gu="બેસ્ટ">Best</div></div>
+  </div>
+
+  <div class="progress-wrap"><div class="progress-track"><div class="progress-fill" id="progress"></div></div></div>
+
+  <!-- Play scene -->
+  <main class="play">
+    <div class="scene">
+      <svg viewBox="0 0 375 620" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="asph" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#6c7072"/><stop offset="1" stop-color="#4d5052"/>
+          </linearGradient>
+          <linearGradient id="path" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#d6c4a5"/><stop offset="1" stop-color="#c4b192"/>
+          </linearGradient>
+        </defs>
+        <!-- asphalt road -->
+        <rect x="0" y="196" width="375" height="424" fill="url(#asph)"/>
+        <!-- footpath -->
+        <rect x="0" y="0" width="375" height="200" fill="url(#path)"/>
+        <g stroke="#b3a082" stroke-width="1.5" opacity=".55">
+          <line x1="0" y1="72" x2="375" y2="72"/><line x1="0" y1="134" x2="375" y2="134"/>
+          <line x1="58" y1="0" x2="58" y2="200"/><line x1="152" y1="0" x2="152" y2="200"/>
+          <line x1="246" y1="0" x2="246" y2="200"/><line x1="330" y1="0" x2="330" y2="200"/>
+        </g>
+        <!-- curb -->
+        <rect x="0" y="196" width="375" height="13" fill="#8f8672"/>
+        <rect x="0" y="196" width="375" height="3" fill="#efe9dc" opacity=".5"/>
+        <rect x="0" y="216" width="375" height="3" fill="#e9e6da" opacity=".5"/>
+        <!-- zebra crossing (receding perspective) -->
+        <g fill="#edeae0">
+          <rect x="107" y="248" width="161" height="7"  rx="3" opacity=".78"/>
+          <rect x="99"  y="277" width="177" height="9"  rx="3" opacity=".82"/>
+          <rect x="90"  y="311" width="195" height="12" rx="4" opacity=".85"/>
+          <rect x="79"  y="356" width="217" height="15" rx="4" opacity=".88"/>
+          <rect x="66"  y="411" width="243" height="19" rx="5" opacity=".9"/>
+          <rect x="51"  y="481" width="273" height="24" rx="6" opacity=".92"/>
+          <rect x="33"  y="561" width="309" height="31" rx="7" opacity=".94"/>
+        </g>
+      </svg>
+    </div>
+    <div class="far" id="bins"></div>
+    <div class="prompt" id="prompt" data-en="Throw it into the correct bin" data-gu="સાચા ડબ્બામાં ફેંકો">Throw it into the correct bin</div>
+
+    <div class="toast" id="toast"></div>
+
+    <!-- Error card -->
+    <div class="error-card" id="errorCard">
+      <div class="err-top">
+        <div class="err-emoji" id="errEmoji">📄</div>
+        <div><div class="err-x" id="errX">Wrong bin</div><div class="err-line" id="errLine"></div></div>
+      </div>
+      <div class="err-why" id="errWhy"></div>
+      <button class="gotit" id="gotitBtn" data-en="Try again" data-gu="ફરી પ્રયાસ કરો">Try again</button>
+    </div>
+
+    <!-- Thrower at bottom center -->
+    <div class="thrower" id="thrower">
+      <div class="held enter" id="held">
+        <div class="bubble">
+          <div class="h-emoji" id="itemEmoji">🍌</div>
+          <div class="h-gu gu" id="itemGu">કેળાની છાલ</div>
+          <div class="h-en" id="itemEn">Banana peel</div>
+        </div>
+      </div>
+      <img id="handImg" class="hand-real" alt="" style="display:none" />
+      <div class="hand-emoji" id="handEmoji">🫴</div>
+      <div class="hand-shadow"></div>
+    </div>
+  </main>
+
+  <!-- Start overlay -->
+  <div class="overlay" id="startOverlay">
+    <img class="o-logo" src="assets/india-recycles-logo.png" alt="India Recycles" />
+    <h2>Sort It Right</h2>
+    <div class="sub"><span class="gu">હાથમાંનો કચરો દૂરના સાચા ડબ્બામાં ફેંકો!</span><br>Throw the waste in your hand into the correct distant bin.</div>
+
+    <div class="picker">
+      <div class="picker-title" data-en="Choose bins to play with (pick at least 2)" data-gu="રમવા માટે ડબ્બા પસંદ કરો (ઓછામાં ઓછા 2)">Choose bins to play with (pick at least 2)</div>
+      <div class="chips" id="binPicker"></div>
+      <div class="picker-hint" id="pickerHint"></div>
+    </div>
+
+    <div class="rules">
+      <div><span>✅</span> <b>+10</b></div>
+      <div><span>🔥</span> <span data-en="Streak" data-gu="સ્ટ્રીક">Streak</span> <b>+5</b></div>
+      <div><span>❌</span> <b>-5</b></div>
+    </div>
+    <button class="btn" id="startBtn" data-en="Start Game" data-gu="રમત શરૂ કરો">Start Game</button>
+    <div class="credit">A civic awareness game by India Recycles</div>
+  </div>
+
+  <!-- End overlay -->
+  <div class="overlay hidden" id="endOverlay">
+    <div style="font-size:58px" id="endIcon">🌱</div>
+    <h2 data-en="Round complete!" data-gu="રાઉન્ડ પૂરો!">Round complete!</h2>
+    <div class="final-score" id="finalScore">0</div>
+    <div class="sub" id="endMsg"></div>
+    <button class="btn" id="playAgain" data-en="Play Again" data-gu="ફરી રમો">Play Again</button>
+  </div>
+
+</div>
+
+<script>
+  // ---------- Dataset ----------
+  const ITEMS = [
+    // WET / ભીનો
+    { emoji:"🍌", gu:"કેળાની છાલ", en:"Banana peel", bin:"wet" },
+    { emoji:"🥕", gu:"શાકભાજીની છાલ", en:"Vegetable peels", bin:"wet" },
+    { emoji:"🍚", gu:"વધેલો ખોરાક", en:"Leftover food", bin:"wet" },
+    { emoji:"🍵", gu:"ચાની પત્તી", en:"Used tea leaves", bin:"wet" },
+    { emoji:"🥚", gu:"ઈંડાનાં છોતરાં", en:"Eggshells", bin:"wet" },
+    { emoji:"🍞", gu:"વાસી બ્રેડ", en:"Stale bread", bin:"wet" },
+    { emoji:"🍂", gu:"સૂકાં પાંદડાં", en:"Garden leaves", bin:"wet" },
+    { emoji:"🍎", gu:"સડેલું ફળ", en:"Rotten fruit", bin:"wet" },
+    { emoji:"🌸", gu:"નિર્માલ્ય/ફૂલ", en:"Flowers / garland", bin:"wet" },
+    { emoji:"☕", gu:"કોફીનો ચૂરો", en:"Coffee grounds", bin:"wet" },
+    { emoji:"🌽", gu:"મકાઈનું ડૂંડું", en:"Corn cob", bin:"wet" },
+    { emoji:"🐟", gu:"માછલીનો કચરો", en:"Fish scraps", bin:"wet" },
+    { emoji:"🍗", gu:"હાડકાં", en:"Bones", bin:"wet" },
+
+    // DRY / સૂકો
+    { emoji:"📰", gu:"છાપું", en:"Newspaper", bin:"dry" },
+    { emoji:"🧴", gu:"પ્લાસ્ટિક બોટલ", en:"Plastic bottle", bin:"dry" },
+    { emoji:"📦", gu:"કાર્ડબોર્ડ બોક્સ", en:"Cardboard box", bin:"dry" },
+    { emoji:"🫙", gu:"કાચની બોટલ", en:"Glass jar", bin:"dry" },
+    { emoji:"🥫", gu:"ટીનનો ડબ્બો", en:"Tin can", bin:"dry" },
+    { emoji:"🛍️", gu:"પ્લાસ્ટિક થેલી", en:"Plastic bag", bin:"dry" },
+    { emoji:"🧻", gu:"કાગળનું રોલ", en:"Paper roll", bin:"dry" },
+    { emoji:"📄", gu:"જૂનું મેગેઝિન", en:"Old magazine", bin:"dry" },
+    { emoji:"🥤", gu:"નિકાલ કપ", en:"Disposable cup", bin:"dry" },
+    { emoji:"🧦", gu:"જૂનું કપડું", en:"Old cloth", bin:"dry" },
+    { emoji:"👟", gu:"જૂનો બૂટ", en:"Old shoe", bin:"dry" },
+    { emoji:"🪥", gu:"જૂનું બ્રશ", en:"Old toothbrush", bin:"dry" },
+    { emoji:"🥡", gu:"ફૂડ પેકિંગ", en:"Food packaging", bin:"dry" },
+
+    // HAZARDOUS / જોખમી
+    { emoji:"💊", gu:"એક્સપાયર દવા", en:"Expired medicine", bin:"hazard" },
+    { emoji:"🩹", gu:"વપરાયેલી પટ્ટી", en:"Used bandage", bin:"hazard" },
+    { emoji:"🧷", gu:"સેનિટરી પેડ", en:"Sanitary pad", bin:"hazard" },
+    { emoji:"💉", gu:"સિરિંજ/સોય", en:"Syringe / needle", bin:"hazard" },
+    { emoji:"🧪", gu:"કેમિકલ બોટલ", en:"Chemical bottle", bin:"hazard" },
+    { emoji:"🎨", gu:"પેઇન્ટનો ડબ્બો", en:"Paint tin", bin:"hazard" },
+    { emoji:"💡", gu:"CFL ટ્યુબ લાઈટ", en:"CFL tube light", bin:"hazard" },
+    { emoji:"🚼", gu:"ડાયપર", en:"Diaper", bin:"hazard" },
+    { emoji:"🚬", gu:"સિગારેટ", en:"Cigarette butt", bin:"hazard" },
+    { emoji:"🌡️", gu:"થર્મોમીટર", en:"Thermometer", bin:"hazard" },
+    { emoji:"💅", gu:"નેલ પોલિશ", en:"Nail polish", bin:"hazard" },
+    { emoji:"🧯", gu:"જંતુનાશક સ્પ્રે", en:"Pesticide spray", bin:"hazard" },
+    { emoji:"🪒", gu:"બ્લેડ/રેઝર", en:"Razor blade", bin:"hazard" },
+
+    // E-WASTE / ઈ-કચરો
+    { emoji:"📱", gu:"જૂનો ફોન", en:"Old phone", bin:"ewaste" },
+    { emoji:"🔋", gu:"બેટરી", en:"Battery", bin:"ewaste" },
+    { emoji:"🔌", gu:"ચાર્જર/વાયર", en:"Charger / cable", bin:"ewaste" },
+    { emoji:"🎧", gu:"ઈયરફોન", en:"Earphones", bin:"ewaste" },
+    { emoji:"🖱️", gu:"માઉસ", en:"Computer mouse", bin:"ewaste" },
+    { emoji:"⌨️", gu:"કીબોર્ડ", en:"Keyboard", bin:"ewaste" },
+    { emoji:"📷", gu:"જૂનો કેમેરા", en:"Old camera", bin:"ewaste" },
+    { emoji:"💻", gu:"લેપટોપ", en:"Laptop", bin:"ewaste" },
+    { emoji:"📺", gu:"જૂનું ટીવી", en:"Old TV", bin:"ewaste" },
+    { emoji:"🖨️", gu:"પ્રિન્ટર", en:"Printer", bin:"ewaste" },
+    { emoji:"⌚", gu:"જૂની ઘડિયાળ", en:"Old watch", bin:"ewaste" },
+    { emoji:"🔦", gu:"ટોર્ચ", en:"Torch", bin:"ewaste" },
+    { emoji:"🎮", gu:"ગેમ કંટ્રોલર", en:"Game controller", bin:"ewaste" },
+  ];
+
+  const BIN_META = {
+    wet:    { cls:"green", l1:"FOR WET WASTE",  l3:"ભીનો કચરો", gu:"ભીનો", en:"Wet" },
+    dry:    { cls:"blue",  l1:"FOR DRY WASTE",  l3:"સૂકો કચરો", gu:"સૂકો", en:"Dry" },
+    hazard: { cls:"red",   l1:"FOR HAZARDOUS",  l3:"જોખમી કચરો", gu:"જોખમી", en:"Hazardous" },
+    ewaste: { cls:"slate", l1:"FOR E-WASTE",    l3:"ઈ-કચરો", gu:"ઈ-કચરો", en:"E-waste" },
+  };
+  const BIN_ORDER = ["wet","dry","hazard","ewaste"];
+
+  const BINS = {
+    wet:    { gu:"ભીનો કચરો (લીલો ડબ્બો)", en:"Wet waste (Green bin)",
+              whyGu:"ખોરાક અને બગીચાનો કચરો કુદરતી રીતે સડીને ખાતર બને છે.",
+              whyEn:"Food and garden waste rots naturally and becomes compost." },
+    dry:    { gu:"સૂકો કચરો (વાદળી ડબ્બો)", en:"Dry waste (Blue bin)",
+              whyGu:"સ્વચ્છ કાગળ, પ્લાસ્ટિક, કાચ અને ધાતુ રિસાયકલ થઈ શકે છે.",
+              whyEn:"Clean paper, plastic, glass and metal can be recycled into new things." },
+    hazard: { gu:"જોખમી કચરો (લાલ ડબ્બો)", en:"Hazardous waste (Red bin)",
+              whyGu:"આ આરોગ્ય કે પર્યાવરણને નુકસાન કરે છે, તેને અલગ અને સુરક્ષિત રીતે નાખવું જરૂરી છે.",
+              whyEn:"This can harm health or the environment, so it needs safe, separate disposal." },
+    ewaste: { gu:"ઈ-કચરો (કાળો ડબ્બો)", en:"E-waste bin",
+              whyGu:"ઈલેક્ટ્રોનિકમાં ધાતુ અને કેમિકલ હોય છે જેને ખાસ રીતે રિસાયકલ કરવું પડે છે.",
+              whyEn:"Electronics contain metals and chemicals that must be recycled specially." },
+  };
+
+  // ---------- Throw animation styles ----------
+  const THROW_STYLES = [
+    { dur:600, peak:1.00, spin:640,  curve:0,   handY:-46, handR:1.0 },  // classic arc
+    { dur:800, peak:1.80, spin:400,  curve:0,   handY:-56, handR:0.6 },  // high lob
+    { dur:430, peak:0.42, spin:1040, curve:0,   handY:-28, handR:1.5 },  // fast line drive
+    { dur:680, peak:1.05, spin:760,  curve:80,  handY:-40, handR:1.7 },  // curve right
+    { dur:680, peak:1.05, spin:760,  curve:-80, handY:-40, handR:1.7 },  // curve left
+    { dur:740, peak:1.35, spin:-420, curve:0,   handY:-22, handR:-0.9 }, // underhand backspin
+  ];
+
+  const ROUND_LENGTH = 15;
+
+  // ---------- State ----------
+  let queue = [], index = 0, score = 0, streak = 0, locked = false, roundLen = ROUND_LENGTH;
+  let best = Number(localStorage.getItem("sortItRightBest") || 0);
+  let lang = localStorage.getItem("sortItRightLang") || "both";
+  let muted = localStorage.getItem("sortItRightMuted") === "1";
+  let selected = [];
+  try { selected = JSON.parse(localStorage.getItem("sortItRightBins")); } catch(e){}
+  if(!Array.isArray(selected) || selected.length < 2) selected = ["wet","dry","hazard","ewaste"];
+
+  const $ = id => document.getElementById(id);
+  const scoreEl=$("score"), streakEl=$("streak"), bestEl=$("best"), progress=$("progress");
+  const held=$("held"), itemEmoji=$("itemEmoji"), itemGu=$("itemGu"), itemEn=$("itemEn");
+  const toast=$("toast"), handEmoji=$("handEmoji"), handImg=$("handImg"), binsWrap=$("bins");
+  const errorCard=$("errorCard"), errEmoji=$("errEmoji"), errLine=$("errLine"), errWhy=$("errWhy");
+  bestEl.textContent = best;
+
+  // Use the real hand photo if assets/hand.png exists; otherwise fall back to the emoji hand.
+  let handEl = handEmoji;
+  handImg.onload = ()=>{ handImg.style.display=""; handEmoji.style.display="none"; handEl=handImg; };
+  handImg.onerror = ()=>{ handImg.style.display="none"; handEmoji.style.display=""; handEl=handEmoji; };
+  handImg.src = "assets/hand.png";
+  $("soundBtn").textContent = muted ? "🔇" : "🔊";
+
+  // ---------- Sound ----------
+  let actx;
+  function AC(){ if(!actx) actx = new (window.AudioContext||window.webkitAudioContext)(); return actx; }
+  function beep(freq, at, dur, type="sine", vol=0.22){
+    const c=AC(), o=c.createOscillator(), g=c.createGain();
+    o.type=type; o.frequency.value=freq; o.connect(g); g.connect(c.destination);
+    g.gain.setValueAtTime(0, at); g.gain.linearRampToValueAtTime(vol, at+0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001, at+dur); o.start(at); o.stop(at+dur+0.02);
+  }
+  function playCorrect(){ if(muted)return; const t=AC().currentTime; beep(523.25,t,0.12); beep(659.25,t+0.09,0.12); beep(783.99,t+0.18,0.22); }
+  function playThrow(){ if(muted)return; const c=AC(),t=c.currentTime,o=c.createOscillator(),g=c.createGain();
+    o.type="sine"; o.frequency.setValueAtTime(680,t); o.frequency.exponentialRampToValueAtTime(230,t+0.28);
+    g.gain.setValueAtTime(0.001,t); g.gain.linearRampToValueAtTime(0.13,t+0.03); g.gain.exponentialRampToValueAtTime(0.0001,t+0.3);
+    o.connect(g); g.connect(c.destination); o.start(t); o.stop(t+0.32); }
+  function playWrong(){ if(muted)return; const t=AC().currentTime; beep(196,t,0.16,"square",0.16); beep(155.56,t+0.14,0.24,"square",0.16); }
+
+  // ---------- Helpers ----------
+  function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]];} return a; }
+  function bumpStat(el){ el.classList.remove("pop"); void el.offsetWidth; el.classList.add("pop"); }
+  function confetti(x, y){
+    const colors=["#2ab069","#2f8fe0","#ef5350","#ffca28","#ab47bc","#26c6da"];
+    for(let i=0;i<16;i++){
+      const p=document.createElement("div"); p.className="confetti";
+      p.style.left=x+"px"; p.style.top=y+"px"; p.style.background=colors[i%colors.length];
+      const ang=Math.random()*Math.PI*2, dist=40+Math.random()*70;
+      p.style.setProperty("--tx", Math.cos(ang)*dist+"px");
+      p.style.setProperty("--ty", (Math.sin(ang)*dist-45)+"px");
+      document.body.appendChild(p); setTimeout(()=>p.remove(), 780);
+    }
+  }
+
+  // ---------- Bin selection (start screen) ----------
+  function renderPicker(){
+    const wrap = $("binPicker"); wrap.innerHTML = "";
+    BIN_ORDER.forEach(key=>{
+      const m = BIN_META[key], on = selected.includes(key);
+      const b = document.createElement("div");
+      b.className = "chip-sel " + m.cls + (on ? " on" : "");
+      b.innerHTML = '<div class="tick">✓</div>'+
+        '<div class="mini-bin '+m.cls+'"><div class="mini-hood"><div class="mini-arch"></div></div><div class="mini-body"></div></div>'+
+        '<div class="cl gu">'+m.gu+'</div><div class="cl2">'+m.en+'</div>';
+      b.addEventListener("click", ()=>toggleBin(key));
+      wrap.appendChild(b);
+    });
+    const hint = $("pickerHint");
+    hint.textContent = selected.length < 2
+      ? (lang==="gu" ? "ઓછામાં ઓછા 2 ડબ્બા પસંદ કરો" : "Select at least 2 bins")
+      : (lang==="gu" ? (selected.length+" ડબ્બા પસંદ કર્યા") : (selected.length+" bins selected"));
+    $("startBtn").disabled = selected.length < 2;
+  }
+  function toggleBin(key){
+    const i = selected.indexOf(key);
+    if(i>=0){ if(selected.length<=2){ flashHint(); return; } selected.splice(i,1); }
+    else selected.push(key);
+    localStorage.setItem("sortItRightBins", JSON.stringify(selected));
+    renderPicker();
+  }
+  function flashHint(){ const h=$("pickerHint"); h.textContent = (lang==="gu"?"ઓછામાં ઓછા 2 ડબ્બા જરૂરી":"At least 2 bins required"); h.style.color="var(--red)"; setTimeout(()=>h.style.color="",900); }
+
+  // ---------- Bins in play ----------
+  function renderBins(){
+    binsWrap.innerHTML = "";
+    const active = BIN_ORDER.filter(k=>selected.includes(k));
+    const n = active.length;
+    const W = n<=2 ? 118 : n===3 ? 98 : 80;
+    const G = n<=2 ? 28 : n===3 ? 16 : 10;
+    binsWrap.style.gap = G+"px";
+    const SWAN = '<svg class="swan" viewBox="0 0 64 64"><path d="M50 45c0 6-8 10-18 10-12 0-22-6-22-15 0-2 1-4 3-4 3 0 3 4 6 6 3 2 6 2 6 2s-13-3-13-14c0-8 6-13 12-13 2 0 3 1 3 3 0 3-3 3-3 6 0 5 5 8 9 10 8 4 17 8 17 19z"/></svg>';
+    active.forEach(key=>{
+      const m = BIN_META[key];
+      const b = document.createElement("button");
+      b.className = "bin " + m.cls; b.dataset.bin = key; b.style.width = W+"px";
+      b.innerHTML = '<div class="hood"></div>'+
+        '<div class="body"><div class="l1">'+m.l1+'</div><div class="l2">AMC</div><div class="l3 gu">'+m.l3+'</div>'+SWAN+'</div>'+
+        '<div class="legs"><i></i><i></i></div>'+
+        '<div class="bshadow"></div>';
+      b.addEventListener("click", ()=> pickBin(key, b));
+      binsWrap.appendChild(b);
+    });
+    applyBinLang();
+  }
+
+  function startGame(){
+    if(selected.length < 2) return;
+    try { AC().resume(); } catch(e){}
+    renderBins();
+    const pool = ITEMS.filter(it=>selected.includes(it.bin));
+    roundLen = Math.min(ROUND_LENGTH, pool.length);
+    queue = shuffle(pool).slice(0, roundLen);
+    index=0; score=0; streak=0; locked=false;
+    scoreEl.textContent=0; streakEl.textContent=0;
+    hideError();
+    $("startOverlay").classList.add("hidden");
+    $("endOverlay").classList.add("hidden");
+    showItem();
+  }
+
+  function showItem(){
+    const it = queue[index];
+    itemEmoji.textContent = it.emoji; itemGu.textContent = it.gu; itemEn.textContent = it.en;
+    held.classList.remove("hidden-item","enter"); void held.offsetWidth; held.classList.add("enter");
+    progress.style.width = (index/roundLen*100) + "%";
+    locked=false;
+  }
+
+  function flashToast(text){ toast.textContent=text; toast.className="toast show good"; setTimeout(()=>toast.classList.remove("show"),900); }
+
+  // ---------- Throw (from bottom center, into a distant bin) ----------
+  function ghost(emoji, x, y, s){
+    const g=document.createElement("div"); g.className="ghost"; g.textContent=emoji;
+    g.style.left=x+"px"; g.style.top=y+"px"; g.style.fontSize="54px";
+    g.style.transform="translate(-50%,-50%) scale("+s+")";
+    document.body.appendChild(g); setTimeout(()=>g.remove(),280);
+  }
+  function puff(x,y){ const d=document.createElement("div"); d.className="puff"; d.style.left=x+"px"; d.style.top=y+"px"; document.body.appendChild(d); setTimeout(()=>d.remove(),460); }
+
+  function throwTo(binEl, emoji, onDone){
+    const style = THROW_STYLES[Math.floor(Math.random()*THROW_STYLES.length)];
+    const startRect = held.querySelector(".bubble").getBoundingClientRect();
+    const hood = binEl.querySelector(".hood").getBoundingClientRect();
+    const baseR = binEl.querySelector(".bshadow").getBoundingClientRect();
+    const handRect = handEl.getBoundingClientRect();
+    const x0 = startRect.left + startRect.width/2, y0 = startRect.top + startRect.height/2;
+    const x1 = hood.left + hood.width/2,           y1 = hood.top + hood.height*0.35;
+    const groundY0 = handRect.bottom + 6;          // shadow starts near the hand (close)
+    const groundY1 = baseR.top + baseR.height/2;   // shadow ends at the bin base (far)
+
+    // animated hand swing toward the bin (direction-aware)
+    const handCx = handRect.left + handRect.width/2;
+    const dir = x1 - handCx;
+    const dx = Math.max(-46, Math.min(46, dir*0.12));
+    const lean = Math.max(-26, Math.min(26, dir*0.05)) * style.handR;
+    handEl.style.animation = "none";
+    handEl.style.transition = "transform .15s cubic-bezier(.3,.7,.35,1.6)";
+    handEl.style.transform = "translate("+dx+"px,"+style.handY+"px) rotate("+lean+"deg)";
+
+    const proj = document.createElement("div");
+    proj.className="projectile"; proj.textContent=emoji; document.body.appendChild(proj);
+    const shadow = document.createElement("div");
+    shadow.className="proj-shadow"; document.body.appendChild(shadow);
+    const dur = style.dur;
+    const peak = (Math.max(150, (y0-y1)*0.5 + 120)) * style.peak;
+    held.classList.add("hidden-item");
+    playThrow();
+    let lastGhost=0;
+    const t0=performance.now();
+    function frame(now){
+      let t=Math.min(1,(now-t0)/dur);
+      const x = x0 + (x1-x0)*t + style.curve*Math.sin(Math.PI*t);
+      const y = y0 + (y1-y0)*t - peak*Math.sin(Math.PI*t);
+      const s = 1 - 0.82*t;                 // shrink hard into the distance
+      proj.style.left=x+"px"; proj.style.top=y+"px";
+      proj.style.transform="translate(-50%,-50%) scale("+s+") rotate("+(t*style.spin)+"deg)";
+      // ground shadow glides across the floor from near -> far, shrinking
+      const gx = x0 + (x1-x0)*t + style.curve*Math.sin(Math.PI*t)*0.4;
+      const gy = groundY0 + (groundY1-groundY0)*t;
+      shadow.style.left=gx+"px"; shadow.style.top=gy+"px";
+      shadow.style.transform="translate(-50%,-50%) scale("+(1-0.72*t)+")";
+      shadow.style.opacity = (0.5 - 0.2*t);
+      // motion trail
+      if(now-lastGhost>42){ lastGhost=now; ghost(emoji,x,y,s); }
+      if(t<1) requestAnimationFrame(frame);
+      else {
+        proj.remove(); shadow.remove();
+        puff(x1, groundY1); confetti(x1, y1);
+        handEl.style.transition = "transform .32s ease"; handEl.style.transform = "";
+        setTimeout(()=>{ handEl.style.transition=""; handEl.style.animation=""; }, 330);
+        onDone();
+      }
+    }
+    requestAnimationFrame(frame);
+  }
+
+  function pickBin(chosen, binEl){
+    if(locked) return;
+    const it = queue[index];
+    if(it.bin === chosen){
+      locked=true;
+      const bonus = streak>=2 ? 5 : 0, gained = 10+bonus;
+      throwTo(binEl, it.emoji, ()=>{
+        score += gained; streak += 1;
+        scoreEl.textContent=score; streakEl.textContent=streak;
+        bumpStat(scoreEl); bumpStat(streakEl);
+        binEl.classList.add("gulp"); playCorrect();
+        flashToast(bonus ? ("+"+gained+" 🔥") : "+10 ✓");
+        setTimeout(()=>{ binEl.classList.remove("gulp"); nextItem(); }, 520);
+      });
+    } else {
+      locked=true;
+      score = Math.max(0, score-5); streak=0;
+      scoreEl.textContent=score; streakEl.textContent=streak;
+      playWrong(); showError(it);
+    }
+  }
+
+  function showError(it){
+    const right = BINS[it.bin];
+    errEmoji.textContent = it.emoji;
+    $("errX").textContent = (lang==="gu") ? "ખોટો ડબ્બો" : "Wrong bin";
+    const goesGu = "<span class='gu'>"+it.gu+" → </span><span class='chip "+it.bin+"'>"+right.gu+"</span>";
+    const goesEn = it.en+" → <span class='chip "+it.bin+"'>"+right.en+"</span>";
+    if(lang==="gu") errLine.innerHTML = goesGu;
+    else if(lang==="en") errLine.innerHTML = goesEn;
+    else errLine.innerHTML = goesGu + "<br><span style='font-size:13px;color:var(--muted)'>"+goesEn+"</span>";
+    if(lang==="gu") errWhy.innerHTML = "<span class='gu'>"+right.whyGu+"</span>";
+    else if(lang==="en") errWhy.innerHTML = right.whyEn;
+    else errWhy.innerHTML = "<span class='gu'>"+right.whyGu+"</span><br><span class='en'>"+right.whyEn+"</span>";
+    errorCard.classList.add("show");
+    const cb = binsWrap.querySelector('.bin[data-bin="'+it.bin+'"]'); if(cb) cb.classList.add("hint");
+  }
+  function hideError(){ errorCard.classList.remove("show"); binsWrap.querySelectorAll(".bin").forEach(b=>b.classList.remove("hint")); }
+
+  function nextItem(){ index += 1; if(index >= queue.length) endGame(); else showItem(); }
+
+  function endGame(){
+    if(score>best){ best=score; localStorage.setItem("sortItRightBest",best); }
+    bestEl.textContent=best; progress.style.width="100%";
+    $("finalScore").textContent=score;
+    const max=roundLen*10;
+    let icon="🌱", en="Good start! Keep practising.", gu="સરસ શરૂઆત! પ્રેક્ટિસ ચાલુ રાખો.";
+    if(score>=max*0.9){ icon="🏆"; en="Segregation champion! India thanks you."; gu="કચરા વર્ગીકરણ ચેમ્પિયન! ભારત આભારી છે."; }
+    else if(score>=max*0.6){ icon="🌟"; en="Great job! You know your bins."; gu="શાબાશ! તમને ડબ્બા બરાબર આવડે છે."; }
+    $("endIcon").textContent=icon;
+    $("endMsg").innerHTML = "<span class='gu'>"+gu+"</span><br>"+en;
+    $("endOverlay").classList.remove("hidden");
+  }
+
+  // ---------- Language ----------
+  function applyBinLang(){
+    binsWrap.querySelectorAll(".l1").forEach(e=> e.style.display=(lang==="gu")?"none":"");
+    binsWrap.querySelectorAll(".l3").forEach(e=> e.style.display=(lang==="en")?"none":"");
+  }
+  function applyLang(){
+    document.querySelectorAll("[data-en]").forEach(el=>{
+      const en=el.getAttribute("data-en"), gu=el.getAttribute("data-gu");
+      el.textContent = (lang==="gu") ? gu : en;
+    });
+    itemGu.style.display = (lang==="en") ? "none" : "";
+    itemEn.style.display = (lang==="gu") ? "none" : "";
+    $("langBtn").textContent = lang==="both" ? "EN / ગુ" : lang==="en" ? "English" : "ગુજરાતી";
+    applyBinLang(); renderPicker();
+  }
+
+  // ---------- Events ----------
+  $("gotitBtn").addEventListener("click", ()=>{ hideError(); locked=false; });
+  $("startBtn").addEventListener("click", startGame);
+  $("playAgain").addEventListener("click", ()=>{ $("endOverlay").classList.add("hidden"); $("startOverlay").classList.remove("hidden"); renderPicker(); });
+  $("langBtn").addEventListener("click", ()=>{
+    lang = lang==="both" ? "en" : lang==="en" ? "gu" : "both";
+    localStorage.setItem("sortItRightLang", lang); applyLang();
+  });
+  $("soundBtn").addEventListener("click", ()=>{
+    muted=!muted; localStorage.setItem("sortItRightMuted", muted?"1":"0");
+    $("soundBtn").textContent = muted ? "🔇" : "🔊";
+    if(!muted){ try{AC().resume();}catch(e){} }
+  });
+
+  renderPicker();
+  applyLang();
+</script>
+</body>
+</html>
