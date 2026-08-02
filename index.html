@@ -188,6 +188,18 @@
   .rules div { display: flex; align-items: center; gap: 5px; }
   .rules b { color: var(--ink); }
   .credit { margin-top: 16px; font-size: 11px; color: var(--muted); }
+
+  /* ---------- Image-based home page ---------- */
+  .overlay.home { padding: 0; background: #e9ece9; justify-content: flex-start; }
+  .home-wrap { position: relative; width: 100%; max-width: 480px; margin: 0 auto; }
+  .home-bg { width: 100%; height: auto; display: block; }
+  .hz { position: absolute; background: transparent; border: none; cursor: pointer; padding: 0; border-radius: 14px; -webkit-tap-highlight-color: transparent; }
+  .hz.off::before { content: ""; position: absolute; inset: 3%; background: rgba(18,18,18,.55); border-radius: 12px; }
+  .hz.off::after { content: "✕"; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 40px; font-weight: 800; text-shadow: 0 2px 5px rgba(0,0,0,.55); }
+  .count-pill { position: absolute; left: 50%; top: 63.3%; transform: translateX(-50%); background: #fff; color: #2a2a2a; font-size: 13px; font-weight: 800; letter-spacing: .03em; padding: 9px 24px; border-radius: 11px; box-shadow: 0 3px 9px rgba(0,0,0,.18); white-space: nowrap; }
+  .start-hz { position: absolute; background: transparent; border: none; cursor: pointer; padding: 0; border-radius: 50% / 45%; -webkit-tap-highlight-color: transparent; transition: transform .1s ease; }
+  .start-hz:active { transform: scale(.96); }
+  .start-hz:disabled { cursor: default; }
 </style>
 </head>
 <body>
@@ -276,25 +288,17 @@
     </div>
   </main>
 
-  <!-- Start overlay -->
-  <div class="overlay" id="startOverlay">
-    <img class="o-logo" src="assets/india-recycles-logo.png" alt="India Recycles" />
-    <h2>Sort It Right</h2>
-    <div class="sub"><span class="gu">હાથમાંનો કચરો દૂરના સાચા ડબ્બામાં ફેંકો!</span><br>Throw the waste in your hand into the correct distant bin.</div>
-
-    <div class="picker">
-      <div class="picker-title" data-en="Choose bins to play with (pick at least 2)" data-gu="રમવા માટે ડબ્બા પસંદ કરો (ઓછામાં ઓછા 2)">Choose bins to play with (pick at least 2)</div>
-      <div class="chips" id="binPicker"></div>
-      <div class="picker-hint" id="pickerHint"></div>
+  <!-- Start overlay (image-based home page) -->
+  <div class="overlay home" id="startOverlay">
+    <div class="home-wrap">
+      <img class="home-bg" src="assets/home.png" alt="Sort It Right — a civic awareness game by India Recycles" />
+      <button class="hz" data-bin="wet"    style="left:1%;  top:39%; width:24%; height:22%" aria-label="Toggle Wet bin"></button>
+      <button class="hz" data-bin="dry"    style="left:26%; top:39%; width:23%; height:22%" aria-label="Toggle Dry bin"></button>
+      <button class="hz" data-bin="hazard" style="left:50%; top:39%; width:23%; height:22%" aria-label="Toggle Hazardous bin"></button>
+      <button class="hz" data-bin="ewaste" style="left:74%; top:39%; width:24%; height:22%" aria-label="Toggle E-waste bin"></button>
+      <div class="count-pill" id="homeCount">4 BINS SELECTED</div>
+      <button class="start-hz" id="startBtn" style="left:25%; top:74%; width:50%; height:15%" aria-label="Start Game"></button>
     </div>
-
-    <div class="rules">
-      <div><span>✅</span> <b>+10</b></div>
-      <div><span>🔥</span> <span data-en="Streak" data-gu="સ્ટ્રીક">Streak</span> <b>+5</b></div>
-      <div><span>❌</span> <b>-5</b></div>
-    </div>
-    <button class="btn" id="startBtn" data-en="Start Game" data-gu="રમત શરૂ કરો">Start Game</button>
-    <div class="credit">A civic awareness game by India Recycles</div>
   </div>
 
   <!-- End overlay -->
@@ -461,33 +465,24 @@
     }
   }
 
-  // ---------- Bin selection (start screen) ----------
-  function renderPicker(){
-    const wrap = $("binPicker"); wrap.innerHTML = "";
-    BIN_ORDER.forEach(key=>{
-      const m = BIN_META[key], on = selected.includes(key);
-      const b = document.createElement("div");
-      b.className = "chip-sel " + m.cls + (on ? " on" : "");
-      b.innerHTML = '<div class="tick">✓</div>'+
-        '<div class="mini-bin '+m.cls+'"><div class="mini-hood"><div class="mini-arch"></div></div><div class="mini-body"></div></div>'+
-        '<div class="cl gu">'+m.gu+'</div><div class="cl2">'+m.en+'</div>';
-      b.addEventListener("click", ()=>toggleBin(key));
-      wrap.appendChild(b);
+  // ---------- Bin selection (image-based home page) ----------
+  function renderHome(){
+    document.querySelectorAll("#startOverlay .hz").forEach(z=>{
+      z.classList.toggle("off", !selected.includes(z.dataset.bin));
     });
-    const hint = $("pickerHint");
-    hint.textContent = selected.length < 2
-      ? (lang==="gu" ? "ઓછામાં ઓછા 2 ડબ્બા પસંદ કરો" : "Select at least 2 bins")
-      : (lang==="gu" ? (selected.length+" ડબ્બા પસંદ કર્યા") : (selected.length+" bins selected"));
-    $("startBtn").disabled = selected.length < 2;
+    const c = $("homeCount");
+    if(c) c.textContent = selected.length + (lang==="gu" ? " ડબ્બા પસંદ" : " BINS SELECTED");
+    const sb = $("startBtn");
+    sb.disabled = selected.length < 2;
+    sb.style.opacity = selected.length < 2 ? ".45" : "1";
   }
   function toggleBin(key){
     const i = selected.indexOf(key);
-    if(i>=0){ if(selected.length<=2){ flashHint(); return; } selected.splice(i,1); }
+    if(i>=0){ if(selected.length<=2) return; selected.splice(i,1); }
     else selected.push(key);
     localStorage.setItem("sortItRightBins", JSON.stringify(selected));
-    renderPicker();
+    renderHome();
   }
-  function flashHint(){ const h=$("pickerHint"); h.textContent = (lang==="gu"?"ઓછામાં ઓછા 2 ડબ્બા જરૂરી":"At least 2 bins required"); h.style.color="var(--red)"; setTimeout(()=>h.style.color="",900); }
 
   // ---------- Bins in play ----------
   function renderBins(){
@@ -670,13 +665,14 @@
     itemGu.style.display = (lang==="en") ? "none" : "";
     itemEn.style.display = (lang==="gu") ? "none" : "";
     $("langBtn").textContent = lang==="both" ? "EN / ગુ" : lang==="en" ? "English" : "ગુજરાતી";
-    applyBinLang(); renderPicker();
+    applyBinLang(); renderHome();
   }
 
   // ---------- Events ----------
   $("gotitBtn").addEventListener("click", ()=>{ hideError(); locked=false; });
   $("startBtn").addEventListener("click", startGame);
-  $("playAgain").addEventListener("click", ()=>{ $("endOverlay").classList.add("hidden"); $("startOverlay").classList.remove("hidden"); renderPicker(); });
+  $("playAgain").addEventListener("click", ()=>{ $("endOverlay").classList.add("hidden"); $("startOverlay").classList.remove("hidden"); renderHome(); });
+  document.querySelectorAll("#startOverlay .hz").forEach(z=> z.addEventListener("click", ()=> toggleBin(z.dataset.bin)));
   $("langBtn").addEventListener("click", ()=>{
     lang = lang==="both" ? "en" : lang==="en" ? "gu" : "both";
     localStorage.setItem("sortItRightLang", lang); applyLang();
@@ -687,7 +683,7 @@
     if(!muted){ try{AC().resume();}catch(e){} }
   });
 
-  renderPicker();
+  renderHome();
   applyLang();
 </script>
 </body>
