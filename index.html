@@ -26,7 +26,8 @@
 
   /* Header */
   header { padding: 12px 16px 4px; display: flex; align-items: center; justify-content: space-between; gap: 8px; z-index: 5; }
-  .logo { height: 24px; width: auto; display: block; background: #fff; padding: 6px 9px; border-radius: 10px; box-shadow: var(--shadow-sm); }
+  .logo { height: 24px; width: auto; display: block; background: #fff; padding: 6px 9px; border-radius: 10px; box-shadow: var(--shadow-sm); cursor: pointer; }
+  .logo:active { transform: scale(.95); }
   .head-right { display: flex; align-items: center; gap: 8px; }
   .icon-btn { border: 1px solid var(--line); background: var(--card); border-radius: 999px; padding: 6px 12px; font-size: 12px; font-weight: 600; color: var(--muted); cursor: pointer; line-height: 1; height: 32px; display: inline-flex; align-items: center; gap: 4px; font-family: inherit; }
   .icon-btn:active { transform: scale(.95); }
@@ -69,7 +70,7 @@
   /* dark arch opening cut into the dome */
   .arch { position: absolute; left: 50%; bottom: 0; transform: translateX(-50%); width: 62%; height: 78%; background: radial-gradient(120% 130% at 50% 120%, #223, #0b1410); border-radius: 50% 50% 3px 3px / 100% 100% 4px 4px; box-shadow: inset 0 3px 6px rgba(0,0,0,.7); z-index: 3; }
   /* tall tapered body with AMC label */
-  .body { width: 100%; min-height: 156px; margin-top: -4px; color: #fff; position: relative; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; padding: 16px 6px 16px; box-shadow: var(--shadow-sm); clip-path: polygon(8% 0, 92% 0, 84% 100%, 16% 100%); }
+  .body { width: 100%; min-height: 174px; margin-top: -4px; color: #fff; position: relative; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; padding: 18px 6px 16px; box-shadow: var(--shadow-sm); clip-path: polygon(8% 0, 92% 0, 84% 100%, 16% 100%); }
   .body::before { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(90deg, rgba(0,0,0,.30), rgba(0,0,0,0) 20%, rgba(255,255,255,.20) 46%, rgba(0,0,0,0) 74%, rgba(0,0,0,.32)); }
   .body::after { content: ""; position: absolute; top: 0; left: 12%; width: 16%; height: 100%; pointer-events: none; background: linear-gradient(90deg, rgba(255,255,255,.34), rgba(255,255,255,0)); filter: blur(1px); }
   .l1 { font-size: 8px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; opacity: .96; z-index: 1; text-align: center; line-height: 1.15; }
@@ -196,9 +197,13 @@
   .overlay.home { padding: 0; background: #e9ece9; justify-content: center; align-items: center; overflow: hidden; }
   .home-wrap { position: relative; display: block; }
   .home-bg { display: block; height: 100dvh; width: auto; max-width: 100vw; }
-  .hz { position: absolute; background: transparent; border: none; cursor: pointer; padding: 0; border-radius: 14px; -webkit-tap-highlight-color: transparent; }
-  .hz.off::before { content: ""; position: absolute; inset: 3%; background: rgba(18,18,18,.55); border-radius: 12px; }
-  .hz.off::after { content: "✕"; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 40px; font-weight: 800; text-shadow: 0 2px 5px rgba(0,0,0,.55); }
+  .hz { position: absolute; background: transparent; border: none; cursor: pointer; padding: 0; -webkit-tap-highlight-color: transparent; }
+  .hz .bicon { position: absolute; left: 50%; top: 41%; transform: translate(-50%,-50%); width: 36%; pointer-events: none; filter: drop-shadow(0 1px 2px rgba(0,0,0,.35)); }
+  .hz .bicon svg { width: 100%; height: auto; display: block; }
+  .hz .bcheck { position: absolute; left: 50%; top: 16%; transform: translate(-50%,-50%); width: 50%; pointer-events: none; filter: drop-shadow(0 2px 3px rgba(0,0,0,.35)); }
+  .hz .bcheck svg { width: 100%; height: auto; display: block; }
+  .hz.off .bcheck { display: none; }
+  .hz.off::before { content: ""; position: absolute; inset: 2%; background: rgba(20,22,20,.42); border-radius: 14px; }
   .count-pill { position: absolute; left: 50%; top: 63.3%; transform: translateX(-50%); background: #fff; color: #2a2a2a; font-size: 13px; font-weight: 800; letter-spacing: .03em; padding: 9px 24px; border-radius: 11px; box-shadow: 0 3px 9px rgba(0,0,0,.18); white-space: nowrap; }
   .start-hz { position: absolute; background: transparent; border: none; cursor: pointer; padding: 0; border-radius: 50% / 45%; -webkit-tap-highlight-color: transparent; transition: transform .1s ease; }
   .start-hz:active { transform: scale(.96); }
@@ -225,7 +230,7 @@
 <div class="app">
 
   <header>
-    <img class="logo" src="assets/india-recycles-logo.png" alt="India Recycles" />
+    <img class="logo" id="homeLogo" src="assets/india-recycles-logo.png" alt="India Recycles — back to home" title="Home" />
     <div class="head-right">
       <button class="icon-btn" id="soundBtn" title="Sound">🔊</button>
       <button class="icon-btn" id="langBtn">EN / ગુ</button>
@@ -312,10 +317,22 @@
   <div class="overlay home" id="startOverlay">
     <div class="home-wrap">
       <img class="home-bg" src="assets/home.png" alt="Sort It Right — a civic awareness game by India Recycles" />
-      <button class="hz" data-bin="wet"    style="left:1%;  top:39%; width:24%; height:22%" aria-label="Toggle Wet bin"></button>
-      <button class="hz" data-bin="dry"    style="left:26%; top:39%; width:23%; height:22%" aria-label="Toggle Dry bin"></button>
-      <button class="hz" data-bin="hazard" style="left:50%; top:39%; width:23%; height:22%" aria-label="Toggle Hazardous bin"></button>
-      <button class="hz" data-bin="ewaste" style="left:74%; top:39%; width:24%; height:22%" aria-label="Toggle E-waste bin"></button>
+      <button class="hz" data-bin="wet" style="left:1%; top:39%; width:24%; height:22%" aria-label="Toggle Wet bin">
+        <span class="bicon"><svg viewBox="0 0 24 24" fill="#fff"><path d="M12 2.5S5.5 10 5.5 14.8a6.5 6.5 0 0013 0C18.5 10 12 2.5 12 2.5z"/></svg></span>
+        <span class="bcheck"><svg viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 12.5l5 5L20 6" fill="none" stroke="#39b54a" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      </button>
+      <button class="hz" data-bin="dry" style="left:26%; top:39%; width:23%; height:22%" aria-label="Toggle Dry bin">
+        <span class="bicon"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12a7.5 7.5 0 0112.6-5.5"/><path d="M19.5 12a7.5 7.5 0 01-12.6 5.5"/><path d="M17 3.2v3.6h-3.6"/><path d="M7 20.8v-3.6h3.6"/></svg></span>
+        <span class="bcheck"><svg viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 12.5l5 5L20 6" fill="none" stroke="#39b54a" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      </button>
+      <button class="hz" data-bin="hazard" style="left:50%; top:39%; width:23%; height:22%" aria-label="Toggle Hazardous bin">
+        <span class="bicon"><svg viewBox="0 0 24 24"><path d="M12 3l9.4 16.5H2.6L12 3z" fill="#fff"/><rect x="11" y="9" width="2" height="5.5" rx="1" fill="#b71c1c"/><circle cx="12" cy="17" r="1.2" fill="#b71c1c"/></svg></span>
+        <span class="bcheck"><svg viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 12.5l5 5L20 6" fill="none" stroke="#39b54a" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      </button>
+      <button class="hz" data-bin="ewaste" style="left:74%; top:39%; width:24%; height:22%" aria-label="Toggle E-waste bin">
+        <span class="bicon"><svg viewBox="0 0 24 24" fill="#fff"><rect x="3.5" y="4" width="17" height="11" rx="1.6"/><rect x="9" y="16.4" width="6" height="1.6" rx=".8"/><rect x="6.5" y="18.6" width="11" height="1.8" rx=".9"/></svg></span>
+        <span class="bcheck"><svg viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 12.5l5 5L20 6" fill="none" stroke="#39b54a" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      </button>
       <div class="count-pill" id="homeCount">4 BINS SELECTED</div>
       <button class="start-hz" id="startBtn" style="left:25%; top:74%; width:50%; height:15%" aria-label="Start Game"></button>
     </div>
@@ -513,8 +530,8 @@
     binsWrap.innerHTML = "";
     const active = BIN_ORDER.filter(k=>selected.includes(k));
     const n = active.length;
-    const W = n<=2 ? 118 : n===3 ? 98 : 80;
-    const G = n<=2 ? 28 : n===3 ? 16 : 10;
+    const W = n<=2 ? 142 : n===3 ? 114 : 88;
+    const G = n<=2 ? 26 : n===3 ? 14 : 8;
     binsWrap.style.gap = G+"px";
     const SWAN = '<svg class="swan" viewBox="0 0 64 64"><path d="M50 45c0 6-8 10-18 10-12 0-22-6-22-15 0-2 1-4 3-4 3 0 3 4 6 6 3 2 6 2 6 2s-13-3-13-14c0-8 6-13 12-13 2 0 3 1 3 3 0 3-3 3-3 6 0 5 5 8 9 10 8 4 17 8 17 19z"/></svg>';
     active.forEach(key=>{
@@ -589,9 +606,14 @@
     const dir = x1 - handCx;
     const dx = Math.max(-46, Math.min(46, dir*0.12));
     const lean = Math.max(-26, Math.min(26, dir*0.05)) * style.handR;
+    // pronounced throwing motion: quick wind-up dip, then swing up toward the bin
     handEl.style.animation = "none";
-    handEl.style.transition = "transform .15s cubic-bezier(.3,.7,.35,1.6)";
-    handEl.style.transform = "translate("+dx+"px,"+style.handY+"px) rotate("+lean+"deg)";
+    handEl.style.transition = "transform .1s ease-out";
+    handEl.style.transform = "translateY(14px) rotate("+(lean*-0.4)+"deg) scale(.97)";
+    setTimeout(()=>{
+      handEl.style.transition = "transform .16s cubic-bezier(.25,.8,.3,1.7)";
+      handEl.style.transform = "translate("+(dx*1.5)+"px,"+(style.handY*1.35)+"px) rotate("+lean+"deg) scale(1.07)";
+    }, 90);
 
     const proj = document.createElement("div");
     proj.className="projectile"; proj.textContent=emoji; document.body.appendChild(proj);
@@ -744,6 +766,7 @@
   $("startBtn").addEventListener("click", startGame);
   $("playAgain").addEventListener("click", ()=>{ $("endOverlay").classList.add("hidden"); $("startOverlay").classList.remove("hidden"); renderHome(); });
   document.querySelectorAll("#startOverlay .hz").forEach(z=> z.addEventListener("click", ()=> toggleBin(z.dataset.bin)));
+  $("homeLogo").addEventListener("click", ()=>{ locked=false; hideError(); $("endOverlay").classList.add("hidden"); $("startOverlay").classList.remove("hidden"); renderHome(); });
   $("langBtn").addEventListener("click", ()=>{
     lang = lang==="both" ? "en" : lang==="en" ? "gu" : "both";
     localStorage.setItem("sortItRightLang", lang); applyLang();
