@@ -32,17 +32,19 @@
   .icon-btn:active { transform: scale(.95); }
 
   /* Stats */
-  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 4px 16px 6px; z-index: 5; }
-  .stat { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 8px 6px; text-align: center; box-shadow: var(--shadow-sm); }
-  .stat .num { font-size: 20px; font-weight: 700; line-height: 1; }
-  .stat .lbl { font-size: 9px; color: var(--muted); font-weight: 600; margin-top: 3px; text-transform: uppercase; letter-spacing: .05em; }
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; padding: 4px 12px 6px; z-index: 5; }
+  .stat { background: linear-gradient(180deg,#ffffff,#f4f7f4); border: 1px solid var(--line); border-radius: 13px; padding: 7px 4px 6px; text-align: center; box-shadow: var(--shadow-sm); position: relative; overflow: hidden; }
+  .stat .ico { font-size: 12px; line-height: 1; margin-bottom: 2px; }
+  .stat .num { font-size: 18px; font-weight: 800; line-height: 1; }
+  .stat .lbl { font-size: 8px; color: var(--muted); font-weight: 700; margin-top: 3px; text-transform: uppercase; letter-spacing: .03em; }
   .stat.streak .num { color: var(--green); }
   .stat .num.pop { animation: numPop .42s ease; }
   @keyframes numPop { 0%,100%{transform:scale(1)} 40%{transform:scale(1.4)} }
   .stat.streak .num.pop { color: #ff7a18; }
-  .progress-wrap { padding: 0 16px 2px; z-index: 5; }
-  .progress-track { height: 6px; background: #d8e0d8; border-radius: 999px; overflow: hidden; }
+  .progress-wrap { padding: 0 16px 2px; z-index: 5; position: relative; }
+  .progress-track { height: 8px; background: #d8e0d8; border-radius: 999px; overflow: hidden; }
   .progress-fill { height: 100%; width: 0; background: linear-gradient(90deg, var(--green), #4cc47f); border-radius: 999px; transition: width .3s ease; }
+  .prog-label { position: absolute; right: 20px; top: -1px; font-size: 9px; font-weight: 700; color: var(--muted); }
 
   /* ---------- Play scene (bins at a distance) ---------- */
   .play {
@@ -68,7 +70,8 @@
   .arch { position: absolute; left: 50%; bottom: 0; transform: translateX(-50%); width: 62%; height: 78%; background: radial-gradient(120% 130% at 50% 120%, #223, #0b1410); border-radius: 50% 50% 3px 3px / 100% 100% 4px 4px; box-shadow: inset 0 3px 6px rgba(0,0,0,.7); z-index: 3; }
   /* tall tapered body with AMC label */
   .body { width: 100%; min-height: 156px; margin-top: -4px; color: #fff; position: relative; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; padding: 16px 6px 16px; box-shadow: var(--shadow-sm); clip-path: polygon(8% 0, 92% 0, 84% 100%, 16% 100%); }
-  .body::before { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(90deg, rgba(0,0,0,.26), rgba(0,0,0,0) 22%, rgba(255,255,255,.16) 50%, rgba(0,0,0,0) 78%, rgba(0,0,0,.26)); }
+  .body::before { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(90deg, rgba(0,0,0,.30), rgba(0,0,0,0) 20%, rgba(255,255,255,.20) 46%, rgba(0,0,0,0) 74%, rgba(0,0,0,.32)); }
+  .body::after { content: ""; position: absolute; top: 0; left: 12%; width: 16%; height: 100%; pointer-events: none; background: linear-gradient(90deg, rgba(255,255,255,.34), rgba(255,255,255,0)); filter: blur(1px); }
   .l1 { font-size: 8px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; opacity: .96; z-index: 1; text-align: center; line-height: 1.15; }
   .l2 { font-size: 23px; font-weight: 800; letter-spacing: .04em; z-index: 1; line-height: 1; text-shadow: 0 1px 2px rgba(0,0,0,.32); }
   .l3 { font-size: 10px; font-weight: 700; z-index: 1; margin-top: 2px; }
@@ -190,9 +193,9 @@
   .credit { margin-top: 16px; font-size: 11px; color: var(--muted); }
 
   /* ---------- Image-based home page ---------- */
-  .overlay.home { padding: 0; background: #e9ece9; justify-content: flex-start; }
-  .home-wrap { position: relative; width: 100%; max-width: 480px; margin: 0 auto; }
-  .home-bg { width: 100%; height: auto; display: block; }
+  .overlay.home { padding: 0; background: #e9ece9; justify-content: center; align-items: center; overflow: hidden; }
+  .home-wrap { position: relative; display: block; }
+  .home-bg { display: block; height: 100dvh; width: auto; max-width: 100vw; }
   .hz { position: absolute; background: transparent; border: none; cursor: pointer; padding: 0; border-radius: 14px; -webkit-tap-highlight-color: transparent; }
   .hz.off::before { content: ""; position: absolute; inset: 3%; background: rgba(18,18,18,.55); border-radius: 12px; }
   .hz.off::after { content: "✕"; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 40px; font-weight: 800; text-shadow: 0 2px 5px rgba(0,0,0,.55); }
@@ -200,6 +203,22 @@
   .start-hz { position: absolute; background: transparent; border: none; cursor: pointer; padding: 0; border-radius: 50% / 45%; -webkit-tap-highlight-color: transparent; transition: transform .1s ease; }
   .start-hz:active { transform: scale(.96); }
   .start-hz:disabled { cursor: default; }
+
+  /* ---------- Result screen ---------- */
+  .result-scroll { width: 100%; max-width: 400px; display: flex; flex-direction: column; align-items: center; text-align: center; }
+  .badge-icon { font-size: 66px; line-height: 1; filter: drop-shadow(0 6px 10px rgba(0,0,0,.18)); animation: pop .5s cubic-bezier(.2,.9,.3,1.5); }
+  .badge-name { font-size: 26px; font-weight: 800; margin-top: 6px; }
+  .badge-sub { font-size: 13.5px; color: var(--muted); line-height: 1.5; margin-top: 6px; max-width: 320px; }
+  .result-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; margin: 18px 0 6px; }
+  .rstat { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 12px 6px; box-shadow: var(--shadow-sm); }
+  .rstat .rn { font-size: 24px; font-weight: 800; color: var(--green); line-height: 1; }
+  .rstat .rl { font-size: 9px; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: .04em; margin-top: 4px; }
+  .impact { width: 100%; background: linear-gradient(180deg,#f1f8f2,#e8f3ea); border: 1px solid #cfe6d4; border-radius: 16px; padding: 14px 16px; margin: 12px 0 2px; text-align: left; }
+  .impact .imp-h { font-size: 12px; font-weight: 800; color: var(--green-d); text-transform: uppercase; letter-spacing: .03em; margin-bottom: 10px; text-align: center; }
+  .impact .imp-row { display: flex; align-items: center; gap: 10px; margin: 9px 0; }
+  .impact .imp-ico { font-size: 22px; width: 26px; text-align: center; }
+  .impact .imp-num { font-size: 17px; font-weight: 800; color: var(--ink); }
+  .impact .imp-txt { font-size: 11.5px; color: var(--muted); line-height: 1.25; }
 </style>
 </head>
 <body>
@@ -214,12 +233,13 @@
   </header>
 
   <div class="stats">
-    <div class="stat"><div class="num" id="score">0</div><div class="lbl" data-en="Score" data-gu="સ્કોર">Score</div></div>
-    <div class="stat streak"><div class="num" id="streak">0</div><div class="lbl" data-en="Streak" data-gu="સ્ટ્રીક">Streak</div></div>
-    <div class="stat"><div class="num" id="best">0</div><div class="lbl" data-en="Best" data-gu="બેસ્ટ">Best</div></div>
+    <div class="stat"><div class="ico">🎯</div><div class="num" id="score">0</div><div class="lbl" data-en="Score" data-gu="સ્કોર">Score</div></div>
+    <div class="stat streak"><div class="ico">🔥</div><div class="num" id="streak">0</div><div class="lbl" data-en="Streak" data-gu="સ્ટ્રીક">Streak</div></div>
+    <div class="stat"><div class="ico">✅</div><div class="num" id="acc">100%</div><div class="lbl" data-en="Accuracy" data-gu="ચોકસાઈ">Accuracy</div></div>
+    <div class="stat"><div class="ico">🏆</div><div class="num" id="best">0</div><div class="lbl" data-en="Best" data-gu="બેસ્ટ">Best</div></div>
   </div>
 
-  <div class="progress-wrap"><div class="progress-track"><div class="progress-fill" id="progress"></div></div></div>
+  <div class="progress-wrap"><div class="progress-track"><div class="progress-fill" id="progress"></div></div><div class="prog-label" id="progLabel"></div></div>
 
   <!-- Play scene -->
   <main class="play">
@@ -303,78 +323,80 @@
 
   <!-- End overlay -->
   <div class="overlay hidden" id="endOverlay">
-    <div style="font-size:58px" id="endIcon">🌱</div>
-    <h2 data-en="Round complete!" data-gu="રાઉન્ડ પૂરો!">Round complete!</h2>
-    <div class="final-score" id="finalScore">0</div>
-    <div class="sub" id="endMsg"></div>
-    <button class="btn" id="playAgain" data-en="Play Again" data-gu="ફરી રમો">Play Again</button>
+    <div class="result-scroll">
+      <div class="badge-icon" id="endIcon">🌱</div>
+      <div class="badge-name" id="badgeName">Beginner</div>
+      <div class="badge-sub" id="badgeSub"></div>
+      <div class="result-row">
+        <div class="rstat"><div class="rn" id="finalScore">0</div><div class="rl" data-en="Score" data-gu="સ્કોર">Score</div></div>
+        <div class="rstat"><div class="rn" id="finalAcc">0%</div><div class="rl" data-en="Accuracy" data-gu="ચોકસાઈ">Accuracy</div></div>
+        <div class="rstat"><div class="rn" id="finalBest">0</div><div class="rl" data-en="Best" data-gu="બેસ્ટ">Best</div></div>
+      </div>
+      <div class="impact" id="impact"></div>
+      <button class="btn" id="playAgain" data-en="Play Again" data-gu="ફરી રમો">Play Again</button>
+    </div>
   </div>
 
 </div>
 
 <script>
-  // ---------- Dataset ----------
-  const ITEMS = [
-    // WET / ભીનો
-    { emoji:"🍌", gu:"કેળાની છાલ", en:"Banana peel", bin:"wet" },
-    { emoji:"🥕", gu:"શાકભાજીની છાલ", en:"Vegetable peels", bin:"wet" },
-    { emoji:"🍚", gu:"વધેલો ખોરાક", en:"Leftover food", bin:"wet" },
-    { emoji:"🍵", gu:"ચાની પત્તી", en:"Used tea leaves", bin:"wet" },
-    { emoji:"🥚", gu:"ઈંડાનાં છોતરાં", en:"Eggshells", bin:"wet" },
-    { emoji:"🍞", gu:"વાસી બ્રેડ", en:"Stale bread", bin:"wet" },
-    { emoji:"🍂", gu:"સૂકાં પાંદડાં", en:"Garden leaves", bin:"wet" },
-    { emoji:"🍎", gu:"સડેલું ફળ", en:"Rotten fruit", bin:"wet" },
-    { emoji:"🌸", gu:"નિર્માલ્ય/ફૂલ", en:"Flowers / garland", bin:"wet" },
-    { emoji:"☕", gu:"કોફીનો ચૂરો", en:"Coffee grounds", bin:"wet" },
-    { emoji:"🌽", gu:"મકાઈનું ડૂંડું", en:"Corn cob", bin:"wet" },
-    { emoji:"🐟", gu:"માછલીનો કચરો", en:"Fish scraps", bin:"wet" },
-    { emoji:"🍗", gu:"હાડકાં", en:"Bones", bin:"wet" },
-
-    // DRY / સૂકો
-    { emoji:"📰", gu:"છાપું", en:"Newspaper", bin:"dry" },
-    { emoji:"🧴", gu:"પ્લાસ્ટિક બોટલ", en:"Plastic bottle", bin:"dry" },
-    { emoji:"📦", gu:"કાર્ડબોર્ડ બોક્સ", en:"Cardboard box", bin:"dry" },
-    { emoji:"🫙", gu:"કાચની બોટલ", en:"Glass jar", bin:"dry" },
-    { emoji:"🥫", gu:"ટીનનો ડબ્બો", en:"Tin can", bin:"dry" },
-    { emoji:"🛍️", gu:"પ્લાસ્ટિક થેલી", en:"Plastic bag", bin:"dry" },
-    { emoji:"🧻", gu:"કાગળનું રોલ", en:"Paper roll", bin:"dry" },
-    { emoji:"📄", gu:"જૂનું મેગેઝિન", en:"Old magazine", bin:"dry" },
-    { emoji:"🥤", gu:"નિકાલ કપ", en:"Disposable cup", bin:"dry" },
-    { emoji:"🧦", gu:"જૂનું કપડું", en:"Old cloth", bin:"dry" },
-    { emoji:"👟", gu:"જૂનો બૂટ", en:"Old shoe", bin:"dry" },
-    { emoji:"🪥", gu:"જૂનું બ્રશ", en:"Old toothbrush", bin:"dry" },
-    { emoji:"🥡", gu:"ફૂડ પેકિંગ", en:"Food packaging", bin:"dry" },
-
-    // HAZARDOUS / જોખમી
-    { emoji:"💊", gu:"એક્સપાયર દવા", en:"Expired medicine", bin:"hazard" },
-    { emoji:"🩹", gu:"વપરાયેલી પટ્ટી", en:"Used bandage", bin:"hazard" },
-    { emoji:"🧷", gu:"સેનિટરી પેડ", en:"Sanitary pad", bin:"hazard" },
-    { emoji:"💉", gu:"સિરિંજ/સોય", en:"Syringe / needle", bin:"hazard" },
-    { emoji:"🧪", gu:"કેમિકલ બોટલ", en:"Chemical bottle", bin:"hazard" },
-    { emoji:"🎨", gu:"પેઇન્ટનો ડબ્બો", en:"Paint tin", bin:"hazard" },
-    { emoji:"💡", gu:"CFL ટ્યુબ લાઈટ", en:"CFL tube light", bin:"hazard" },
-    { emoji:"🚼", gu:"ડાયપર", en:"Diaper", bin:"hazard" },
-    { emoji:"🚬", gu:"સિગારેટ", en:"Cigarette butt", bin:"hazard" },
-    { emoji:"🌡️", gu:"થર્મોમીટર", en:"Thermometer", bin:"hazard" },
-    { emoji:"💅", gu:"નેલ પોલિશ", en:"Nail polish", bin:"hazard" },
-    { emoji:"🧯", gu:"જંતુનાશક સ્પ્રે", en:"Pesticide spray", bin:"hazard" },
-    { emoji:"🪒", gu:"બ્લેડ/રેઝર", en:"Razor blade", bin:"hazard" },
-
-    // E-WASTE / ઈ-કચરો
-    { emoji:"📱", gu:"જૂનો ફોન", en:"Old phone", bin:"ewaste" },
-    { emoji:"🔋", gu:"બેટરી", en:"Battery", bin:"ewaste" },
-    { emoji:"🔌", gu:"ચાર્જર/વાયર", en:"Charger / cable", bin:"ewaste" },
-    { emoji:"🎧", gu:"ઈયરફોન", en:"Earphones", bin:"ewaste" },
-    { emoji:"🖱️", gu:"માઉસ", en:"Computer mouse", bin:"ewaste" },
-    { emoji:"⌨️", gu:"કીબોર્ડ", en:"Keyboard", bin:"ewaste" },
-    { emoji:"📷", gu:"જૂનો કેમેરા", en:"Old camera", bin:"ewaste" },
-    { emoji:"💻", gu:"લેપટોપ", en:"Laptop", bin:"ewaste" },
-    { emoji:"📺", gu:"જૂનું ટીવી", en:"Old TV", bin:"ewaste" },
-    { emoji:"🖨️", gu:"પ્રિન્ટર", en:"Printer", bin:"ewaste" },
-    { emoji:"⌚", gu:"જૂની ઘડિયાળ", en:"Old watch", bin:"ewaste" },
-    { emoji:"🔦", gu:"ટોર્ચ", en:"Torch", bin:"ewaste" },
-    { emoji:"🎮", gu:"ગેમ કંટ્રોલર", en:"Game controller", bin:"ewaste" },
+  // ---------- Dataset (100+ items each for green/blue) ----------
+  const WET = [
+    ["🍌","કેળાની છાલ","Banana peel"],["🍎","સફરજનનો ગર","Apple core"],["🍏","લીલા સફરજનની છાલ","Green apple peel"],["🍊","સંતરાની છાલ","Orange peel"],["🍋","લીંબુની છાલ","Lemon peel"],
+    ["🍉","તરબૂચની છાલ","Watermelon rind"],["🍈","શક્કરટેટીની છાલ","Melon rind"],["🍇","બગડેલી દ્રાક્ષ","Spoiled grapes"],["🍓","સડેલી સ્ટ્રોબેરી","Rotten strawberry"],["🫐","જાંબુ","Berries"],
+    ["🍒","ચેરીના ઠળિયા","Cherry pits"],["🍑","આલૂનો ઠળિયો","Peach pit"],["🥭","કેરીની છાલ","Mango peel"],["🍍","અનાનસની છાલ","Pineapple skin"],["🥥","નારિયેળની છાલ","Coconut husk"],
+    ["🥝","કિવીની છાલ","Kiwi peel"],["🍅","સડેલું ટામેટું","Rotten tomato"],["🍐","નાસપતિનો ગર","Pear core"],["🍊","મોસંબીની છાલ","Sweet lime peel"],["🍌","પાકેલું કેળું","Overripe banana"],
+    ["🥕","ગાજરની છાલ","Carrot peelings"],["🥔","બટાટાની છાલ","Potato peels"],["🧅","ડુંગળીની છાલ","Onion skins"],["🧄","લસણની છાલ","Garlic skins"],["🥬","કોબીજનાં પાન","Cabbage leaves"],
+    ["🥦","ફ્લાવરનો કચરો","Cauliflower scraps"],["🥒","કાકડીની છાલ","Cucumber peel"],["🌶️","મરચાંનો કચરો","Chilli waste"],["🫑","કેપ્સિકમનો કચરો","Capsicum waste"],["🍆","રીંગણનો કચરો","Brinjal waste"],
+    ["🥗","સલાડનો કચરો","Salad scraps"],["🌽","મકાઈનું ડૂંડું","Corn cob"],["🫛","વટાણાની છાલ","Pea pods"],["🥜","મગફળીની છાલ","Peanut shells"],["🫚","આદુની છાલ","Ginger peel"],
+    ["🍠","શક્કરિયાની છાલ","Sweet potato peel"],["🍄","મશરૂમનો કચરો","Mushroom scraps"],["🥬","પાલકનો કચરો","Spinach scraps"],["🥬","મેથીની ભાજી","Fenugreek leaves"],["🥔","છૂંદેલા બટાટા","Leftover mash"],
+    ["🍚","વધેલો ભાત","Leftover rice"],["🍛","વધેલી દાળ","Leftover dal"],["🍲","વધેલું શાક","Leftover curry"],["🫓","વાસી રોટલી","Stale roti"],["🍞","વાસી બ્રેડ","Stale bread"],
+    ["🥖","વાસી પાંઉ","Stale pav"],["🍜","વધેલા નૂડલ્સ","Leftover noodles"],["🍝","વધેલો પાસ્તા","Leftover pasta"],["🍕","પિઝાનો ટુકડો","Pizza crust"],["🥪","વધેલું સેન્ડવિચ","Leftover sandwich"],
+    ["🍳","ઈંડાનો કચરો","Egg waste"],["🥚","ઈંડાનાં છોતરાં","Eggshells"],["🧀","બગડેલું ચીઝ","Spoiled cheese"],["🥛","બગડેલું દૂધ","Spoiled milk"],["🍦","ઓગળેલી આઈસ્ક્રીમ","Melted ice cream"],
+    ["🍰","વાસી કેક","Stale cake"],["🍪","તૂટેલી બિસ્કિટ","Broken biscuits"],["🍫","વાસી ચોકલેટ","Spoiled chocolate"],["🥘","વધેલો ખોરાક","Leftover food"],["🍢","વધેલો નાસ્તો","Leftover snacks"],
+    ["🍵","ચાની પત્તી","Used tea leaves"],["☕","કોફીનો ચૂરો","Coffee grounds"],["🫖","ચાનો કૂચો","Tea waste"],["🍯","બગડેલું મધ","Spoiled honey"],["🍶","વાસી દહીં","Spoiled curd"],
+    ["🧈","વાસી માખણ","Spoiled butter"],["🥣","વધેલો સૂપ","Leftover soup"],["🫘","વધેલા કઠોળ","Leftover beans"],["🍮","વાસી મીઠાઈ","Stale sweets"],["🥧","વધેલી પાઈ","Leftover pie"],
+    ["🫓","વધેલો ઢોસો","Leftover dosa"],["🥞","વધેલા ઢેબરાં","Leftover pancakes"],["🍂","સૂકાં પાંદડાં","Dry leaves"],["🍃","લીલાં પાંદડાં","Green leaves"],["🌸","નિર્માલ્ય/ફૂલ","Flowers / garland"],
+    ["🌹","સૂકાં ફૂલ","Wilted flowers"],["🌿","નીંદણ","Weeds"],["🌱","છોડનો કચરો","Plant trimmings"],["🌾","કાપેલું ઘાસ","Cut grass"],["🎋","નાની ડાળીઓ","Small twigs"],
+    ["🍁","ખરેલાં પાન","Fallen leaves"],["🌰","બી અને ઠળિયા","Seeds and pits"],["🪴","મૂળ સાથે માટી","Roots with soil"],["🍗","હાડકાં","Bones"],["🍖","માંસનો કચરો","Meat scraps"],
+    ["🐟","માછલીનો કચરો","Fish scraps"],["🦐","ઝીંગાની છાલ","Prawn shells"],["🍤","સીફૂડનો કચરો","Seafood waste"],["🥩","ચરબીનો કચરો","Fat trimmings"],["🧅","શાકભાજીની છાલ","Vegetable peels"],
+    ["🍅","ટામેટાની છાલ","Tomato skin"],["🥭","કેરીનો ઠળિયો","Mango seed"],["🌽","મકાઈના રેસા","Corn husk"],["🍋","લીંબુનો કૂચો","Squeezed lemon"],["🍞","ફૂગવાળી બ્રેડ","Mouldy bread"],
+    ["🍚","ભાતનું ઓસામણ","Rice water"],["🥥","નારિયેળનું છોતરું","Coconut shell"],["🍈","ફળનો ગર","Fruit pulp"],["🌿","તુલસીનાં પાન","Basil leaves"],["🥬","ધાણાનો કચરો","Coriander stems"],
   ];
+  const DRY = [
+    ["📰","છાપું","Newspaper"],["📄","જૂનું મેગેઝિન","Old magazine"],["📃","કાગળ","Paper sheet"],["📑","ઓફિસ કાગળ","Office paper"],["📒","જૂની નોટબુક","Old notebook"],
+    ["📓","જૂની ડાયરી","Old diary"],["📚","જૂનું પુસ્તક","Old book"],["🗞️","પસ્તી","Waste paper"],["🧾","બિલ/રસીદ","Receipts"],["✉️","પરબીડિયું","Envelope"],
+    ["📦","કાર્ડબોર્ડ બોક્સ","Cardboard box"],["🧻","કાગળનું રોલ","Paper tube"],["🎁","ગિફ્ટ રેપર","Gift wrap"],["🏷️","કાગળનું લેબલ","Paper label"],["📇","જૂનું કાર્ડ","Old card"],
+    ["🖨️","પ્રિન્ટ કાગળ","Printed paper"],["📔","જૂનું કેલેન્ડર","Old calendar"],["🗒️","નોટપેડ","Notepad"],["📄","ફોટોકોપી","Photocopy"],["🍽️","પેપર પ્લેટ","Paper plate"],
+    ["🧴","પ્લાસ્ટિક બોટલ","Plastic bottle"],["🥤","નિકાલ કપ","Disposable cup"],["🛍️","પ્લાસ્ટિક થેલી","Plastic bag"],["🥡","ફૂડ પેકિંગ","Food packaging"],["🧃","જ્યૂસ પેક","Juice carton"],
+    ["🫙","પ્લાસ્ટિક ડબ્બો","Plastic container"],["🧷","પ્લાસ્ટિક ક્લિપ","Plastic clip"],["🪥","જૂનું બ્રશ","Old toothbrush"],["🪒","પ્લાસ્ટિક રેઝર","Plastic razor"],["🥄","પ્લાસ્ટિક ચમચી","Plastic spoon"],
+    ["🍴","પ્લાસ્ટિક કાંટો","Plastic fork"],["🥢","પ્લાસ્ટિક સ્ટ્રો","Plastic straw"],["🧸","તૂટેલું રમકડું","Broken toy"],["🪣","પ્લાસ્ટિક ડોલ","Plastic bucket"],["🧫","પ્લાસ્ટિક ઢાંકણ","Plastic lid"],
+    ["🧴","શેમ્પૂ બોટલ","Shampoo bottle"],["🪆","પ્લાસ્ટિક ટબ","Plastic tub"],["💿","જૂની સીડી","Old CD"],["📀","ડીવીડી","DVD"],["🧊","થર્મોકોલ","Thermocol"],
+    ["🫙","કાચની બરણી","Glass jar"],["🍾","કાચની બોટલ","Glass bottle"],["🍶","કાચની શીશી","Glass flask"],["🥛","તૂટેલો ગ્લાસ","Broken glass"],["🪟","કાચનો ટુકડો","Glass piece"],
+    ["🍷","વાઈન ગ્લાસ","Wine glass"],["🫗","કાચનું વાસણ","Glass vessel"],["🖼️","કાચની ફ્રેમ","Glass frame"],["🪞","જૂનો અરીસો","Old mirror"],["🔍","જૂનું લેન્સ","Old lens"],
+    ["🥫","ટીનનો ડબ્બો","Tin can"],["🥤","એલ્યુમિનિયમ કેન","Aluminium can"],["🍴","ધાતુની ચમચી","Metal spoon"],["🔩","નટ-બોલ્ટ","Nuts and bolts"],["🔧","જૂનું ઓજાર","Old tool"],
+    ["⚙️","ધાતુનો ભાગ","Metal part"],["🥄","સ્ટીલ ચમચી","Steel spoon"],["🍳","જૂનું તપેલું","Old pan"],["🪙","ધાતુનું ઢાંકણ","Metal lid"],["📎","પેપર ક્લિપ","Paper clip"],
+    ["🔗","ધાતુની સાંકળ","Metal chain"],["🗝️","જૂની ચાવી","Old key"],["🪝","ધાતુનો હૂક","Metal hook"],["🥫","ફૂડ કેન","Food can"],["🔨","ધાતુનો સ્ક્રેપ","Metal scrap"],
+    ["🧦","જૂનું કપડું","Old cloth"],["👕","જૂનું ટીશર્ટ","Old t-shirt"],["👖","જૂનું જીન્સ","Old jeans"],["👟","જૂનો બૂટ","Old shoe"],["🧢","જૂની ટોપી","Old cap"],
+    ["🧣","જૂનો સ્કાર્ફ","Old scarf"],["🧤","જૂનાં મોજાં","Old gloves"],["👜","જૂની બેગ","Old bag"],["🎒","જૂનું દફતર","Old backpack"],["🧵","દોરાનો કચરો","Thread waste"],
+    ["🪢","જૂનું દોરડું","Old rope"],["🧶","ઊનનો કચરો","Wool scraps"],["📏","તૂટેલી ફૂટપટ્ટી","Broken ruler"],["🖊️","ખાલી પેન","Empty pen"],["🖍️","ક્રેયોન","Crayon"],
+    ["🧹","જૂનું સાવરણું","Old broom"],["🪮","જૂનો કાંસકો","Old comb"],["🕶️","જૂનાં ચશ્માં","Old sunglasses"],["👞","ચામડાનો બૂટ","Leather shoe"],["🎽","જૂનું બનિયન","Old vest"],
+    ["🧴","ખાલી ટ્યૂબ","Empty tube"],["📼","જૂની કેસેટ","Old cassette"],["🥤","સ્ટ્રો","Drinking straw"],["🍬","કેન્ડી રેપર","Candy wrapper"],["🍫","ચોકલેટ રેપર","Chocolate wrapper"],
+    ["🥠","ચિપ્સનું પેકેટ","Chips packet"],["🧴","ડિટર્જન્ટ પેક","Detergent pack"],["📦","કુરિયર પેકિંગ","Courier packaging"],["🧻","ટિશ્યુ કોર","Tissue tube"],["🪧","જૂનું બોર્ડ","Old signboard"],
+    ["🍱","ટિફિન પેક","Takeaway box"],["🧾","એટીએમ સ્લિપ","ATM slip"],["📮","જૂનું કવર","Old wrapper"],["🥤","બોટલનું ઢાંકણ","Bottle cap"],["🧃","દૂધની થેલી","Milk pouch"],
+  ];
+  const HAZ = [
+    ["💊","એક્સપાયર દવા","Expired medicine"],["🩹","વપરાયેલી પટ્ટી","Used bandage"],["🧷","સેનિટરી પેડ","Sanitary pad"],["💉","સિરિંજ/સોય","Syringe / needle"],["🧪","કેમિકલ બોટલ","Chemical bottle"],
+    ["🎨","પેઇન્ટનો ડબ્બો","Paint tin"],["💡","CFL ટ્યુબ લાઈટ","CFL tube light"],["🚼","ડાયપર","Diaper"],["🚬","સિગારેટ","Cigarette butt"],["🌡️","થર્મોમીટર","Thermometer"],
+    ["💅","નેલ પોલિશ","Nail polish"],["🧯","જંતુનાશક સ્પ્રે","Pesticide spray"],["🪒","બ્લેડ/રેઝર","Razor blade"],
+  ];
+  const EW = [
+    ["📱","જૂનો ફોન","Old phone"],["🔋","બેટરી","Battery"],["🔌","ચાર્જર/વાયર","Charger / cable"],["🎧","ઈયરફોન","Earphones"],["🖱️","માઉસ","Computer mouse"],
+    ["⌨️","કીબોર્ડ","Keyboard"],["📷","જૂનો કેમેરા","Old camera"],["💻","લેપટોપ","Laptop"],["📺","જૂનું ટીવી","Old TV"],["🖨️","પ્રિન્ટર","Printer"],
+    ["⌚","જૂની ઘડિયાળ","Old watch"],["🔦","ટોર્ચ","Torch"],["🎮","ગેમ કંટ્રોલર","Game controller"],
+  ];
+  const mk = (a,bin)=>a.map(t=>({emoji:t[0],gu:t[1],en:t[2],bin}));
+  const ITEMS = [...mk(WET,"wet"),...mk(DRY,"dry"),...mk(HAZ,"hazard"),...mk(EW,"ewaste")];
 
   const BIN_META = {
     wet:    { cls:"green", l1:"FOR WET WASTE",  l3:"ભીનો કચરો", gu:"ભીનો", en:"Wet" },
@@ -409,10 +431,12 @@
     { dur:740, peak:1.35, spin:-420, curve:0,   handY:-22, handR:-0.9 }, // underhand backspin
   ];
 
-  const ROUND_LENGTH = 15;
+  const ROUND_LENGTH = 10;
 
   // ---------- State ----------
   let queue = [], index = 0, score = 0, streak = 0, locked = false, roundLen = ROUND_LENGTH;
+  let firstTryCorrect = 0, itemWrong = false, maxStreak = 0;
+  let correctByCat = { wet:0, dry:0, hazard:0, ewaste:0 };
   let best = Number(localStorage.getItem("sortItRightBest") || 0);
   let lang = localStorage.getItem("sortItRightLang") || "both";
   let muted = localStorage.getItem("sortItRightMuted") === "1";
@@ -421,7 +445,7 @@
   if(!Array.isArray(selected) || selected.length < 2) selected = ["wet","dry","hazard","ewaste"];
 
   const $ = id => document.getElementById(id);
-  const scoreEl=$("score"), streakEl=$("streak"), bestEl=$("best"), progress=$("progress");
+  const scoreEl=$("score"), streakEl=$("streak"), bestEl=$("best"), progress=$("progress"), accEl=$("acc"), progLabel=$("progLabel");
   const held=$("held"), itemEmoji=$("itemEmoji"), itemGu=$("itemGu"), itemEn=$("itemEn");
   const toast=$("toast"), handEmoji=$("handEmoji"), handImg=$("handImg"), binsWrap=$("bins");
   const errorCard=$("errorCard"), errEmoji=$("errEmoji"), errLine=$("errLine"), errWhy=$("errWhy");
@@ -515,11 +539,17 @@
     roundLen = Math.min(ROUND_LENGTH, pool.length);
     queue = shuffle(pool).slice(0, roundLen);
     index=0; score=0; streak=0; locked=false;
-    scoreEl.textContent=0; streakEl.textContent=0;
+    firstTryCorrect=0; maxStreak=0; correctByCat={wet:0,dry:0,hazard:0,ewaste:0};
+    scoreEl.textContent=0; streakEl.textContent=0; accEl.textContent="100%";
     hideError();
     $("startOverlay").classList.add("hidden");
     $("endOverlay").classList.add("hidden");
     showItem();
+  }
+
+  function updateAcc(){
+    const acc = index>0 ? Math.round(firstTryCorrect/index*100) : 100;
+    accEl.textContent = acc + "%";
   }
 
   function showItem(){
@@ -527,6 +557,8 @@
     itemEmoji.textContent = it.emoji; itemGu.textContent = it.gu; itemEn.textContent = it.en;
     held.classList.remove("hidden-item","enter"); void held.offsetWidth; held.classList.add("enter");
     progress.style.width = (index/roundLen*100) + "%";
+    progLabel.textContent = (index+1) + " / " + roundLen;
+    itemWrong = false;
     locked=false;
   }
 
@@ -605,15 +637,17 @@
       locked=true;
       const bonus = streak>=2 ? 5 : 0, gained = 10+bonus;
       throwTo(binEl, it.emoji, ()=>{
-        score += gained; streak += 1;
+        score += gained; streak += 1; if(streak>maxStreak) maxStreak=streak;
+        if(!itemWrong) firstTryCorrect += 1;
+        correctByCat[it.bin] = (correctByCat[it.bin]||0) + 1;
         scoreEl.textContent=score; streakEl.textContent=streak;
         bumpStat(scoreEl); bumpStat(streakEl);
         binEl.classList.add("gulp"); playCorrect();
         flashToast(bonus ? ("+"+gained+" 🔥") : "+10 ✓");
-        setTimeout(()=>{ binEl.classList.remove("gulp"); nextItem(); }, 520);
+        setTimeout(()=>{ binEl.classList.remove("gulp"); index+=1; updateAcc(); if(index>=queue.length) endGame(); else showItem(); }, 520);
       });
     } else {
-      locked=true;
+      locked=true; itemWrong=true;
       score = Math.max(0, score-5); streak=0;
       scoreEl.textContent=score; streakEl.textContent=streak;
       playWrong(); showError(it);
@@ -639,16 +673,53 @@
 
   function nextItem(){ index += 1; if(index >= queue.length) endGame(); else showItem(); }
 
+  // score-based badge ladder
+  const BADGES = [
+    { min:100, icon:"🏆", en:"Society Leader",  gu:"સોસાયટી લીડર",
+      gEn:"Flawless! You sorted every item right the first time. You're ready to lead your society's waste drive.",
+      gGu:"પરફેક્ટ! દરેક કચરો પહેલી વારમાં જ સાચો. તમે તમારી સોસાયટીની સ્વચ્છતા મુહિમ દોરી શકો છો." },
+    { min:90,  icon:"🌟", en:"Aware Citizen",   gu:"જાગૃત નાગરિક",
+      gEn:"Excellent! You know your bins. Share this with your neighbours and lift the whole street.",
+      gGu:"ઉત્તમ! તમને ડબ્બા બરાબર આવડે છે. પડોશીઓ સાથે શેર કરો અને આખી શેરી જાગૃત કરો." },
+    { min:75,  icon:"♻️", en:"Green Warrior",   gu:"ગ્રીન વોરિયર",
+      gEn:"Great going! A little more practice on the tricky items and you'll be perfect.",
+      gGu:"સરસ! થોડા અઘરા કચરા પર પ્રેક્ટિસ કરો, પછી તમે પરફેક્ટ થઈ જશો." },
+    { min:50,  icon:"🌱", en:"Eco Learner",     gu:"ઈકો લર્નર",
+      gEn:"Good start! Remember: wet = kitchen/garden, dry = paper/plastic/metal/glass. Try again!",
+      gGu:"સારી શરૂઆત! યાદ રાખો: ભીનો = રસોડું/બગીચો, સૂકો = કાગળ/પ્લાસ્ટિક/ધાતુ/કાચ. ફરી પ્રયત્ન કરો!" },
+    { min:0,   icon:"🐣", en:"Beginner",        gu:"શરૂઆતી",
+      gEn:"Every leader starts here. Read the tips on wrong answers and play again to level up.",
+      gGu:"દરેક લીડરની શરૂઆત અહીંથી. ખોટા જવાબ પરની ટિપ્સ વાંચો અને ફરી રમીને આગળ વધો." },
+  ];
+
   function endGame(){
     if(score>best){ best=score; localStorage.setItem("sortItRightBest",best); }
+    const accPct = Math.round(firstTryCorrect/roundLen*100);
+    const badge = BADGES.find(b=>accPct>=b.min) || BADGES[BADGES.length-1];
+
     bestEl.textContent=best; progress.style.width="100%";
     $("finalScore").textContent=score;
-    const max=roundLen*10;
-    let icon="🌱", en="Good start! Keep practising.", gu="સરસ શરૂઆત! પ્રેક્ટિસ ચાલુ રાખો.";
-    if(score>=max*0.9){ icon="🏆"; en="Segregation champion! India thanks you."; gu="કચરા વર્ગીકરણ ચેમ્પિયન! ભારત આભારી છે."; }
-    else if(score>=max*0.6){ icon="🌟"; en="Great job! You know your bins."; gu="શાબાશ! તમને ડબ્બા બરાબર આવડે છે."; }
-    $("endIcon").textContent=icon;
-    $("endMsg").innerHTML = "<span class='gu'>"+gu+"</span><br>"+en;
+    $("finalAcc").textContent=accPct+"%";
+    $("finalBest").textContent=best;
+    $("endIcon").textContent=badge.icon;
+    $("badgeName").textContent = (lang==="gu") ? badge.gu : badge.en + (lang==="both" ? " · "+badge.gu : "");
+    $("badgeName").className = "badge-name gu";
+    if(lang==="gu") $("badgeSub").innerHTML = "<span class='gu'>"+badge.gGu+"</span>";
+    else if(lang==="en") $("badgeSub").innerHTML = badge.gEn;
+    else $("badgeSub").innerHTML = "<span class='gu'>"+badge.gGu+"</span><br>"+badge.gEn;
+
+    // Waste-impact if you bifurcate correctly (scaled by accuracy, projected over a year of daily sorting)
+    const a = firstTryCorrect/roundLen;
+    const compost = Math.round(180*a), recycled = Math.round(120*a), co2 = Math.round(240*a);
+    const H = (lang==="gu") ? "તમારા યોગ્ય વર્ગીકરણની અસર (વર્ષે)" : "Impact of your correct sorting (per year)";
+    const t1 = (lang==="gu") ? "ભીનો કચરો ખાતરમાં ફેરવાય" : "wet waste turned into compost";
+    const t2 = (lang==="gu") ? "સૂકો કચરો રિસાયકલ થાય" : "dry waste recycled, not dumped";
+    const t3 = (lang==="gu") ? "CO₂ ઉત્સર્જન બચે" : "CO₂ emissions saved";
+    $("impact").innerHTML =
+      "<div class='imp-h'>"+H+"</div>"+
+      "<div class='imp-row'><span class='imp-ico'>🌱</span><div><span class='imp-num'>~"+compost+" kg</span><div class='imp-txt'>"+t1+"</div></div></div>"+
+      "<div class='imp-row'><span class='imp-ico'>♻️</span><div><span class='imp-num'>~"+recycled+" kg</span><div class='imp-txt'>"+t2+"</div></div></div>"+
+      "<div class='imp-row'><span class='imp-ico'>💨</span><div><span class='imp-num'>~"+co2+" kg</span><div class='imp-txt'>"+t3+"</div></div></div>";
     $("endOverlay").classList.remove("hidden");
   }
 
