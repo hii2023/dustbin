@@ -207,8 +207,8 @@
 
   /* ---------- Image-based home page ---------- */
   .overlay.home { padding: 0; background: #e9ece9; justify-content: center; align-items: center; overflow: hidden; }
-  .home-wrap { position: relative; display: block; }
-  .home-bg { display: block; height: 100dvh; width: auto; max-width: 100vw; }
+  .home-wrap { position: relative; width: 100%; height: 100dvh; }
+  .home-bg { display: block; width: 100%; height: 100%; object-fit: fill; }
   .hz { position: absolute; background: transparent; border: none; cursor: pointer; padding: 0; -webkit-tap-highlight-color: transparent; }
   .hz .bicon { position: absolute; left: 50%; top: 41%; transform: translate(-50%,-50%); width: 36%; pointer-events: none; filter: drop-shadow(0 1px 2px rgba(0,0,0,.35)); }
   .hz .bicon svg { width: 100%; height: auto; display: block; }
@@ -487,7 +487,7 @@
   let queue = [], index = 0, score = 0, streak = 0, locked = false, roundLen = ROUND_LENGTH;
   let firstTryCorrect = 0, itemWrong = false, maxStreak = 0;
   let correctByCat = { wet:0, dry:0, hazard:0, ewaste:0 };
-  let resBadge = null, resScore = 0, resAcc = 0, resCompost = 0, resRecycled = 0, resCo2 = 0, currentCert = null;
+  let resBadge = null, resScore = 0, resAcc = 0, resPlants = 0, resBags = 0, resTrees = 0, currentCert = null;
   let best = Number(localStorage.getItem("sortItRightBest") || 0);
   let lang = localStorage.getItem("sortItRightLang") || "both";
   let muted = localStorage.getItem("sortItRightMuted") === "1";
@@ -772,20 +772,22 @@
     else if(lang==="en") $("badgeSub").innerHTML = badge.gEn;
     else $("badgeSub").innerHTML = "<span class='gu'>"+badge.gGu+"</span><br>"+badge.gEn;
 
-    // Waste-impact if you bifurcate correctly (scaled by accuracy, projected over a year of daily sorting)
+    // Waste-impact shown as everyday examples anyone understands (scaled by accuracy, over a year of daily sorting)
     const a = firstTryCorrect/roundLen;
-    const compost = Math.round(180*a), recycled = Math.round(120*a), co2 = Math.round(240*a);
-    resBadge=badge; resScore=score; resAcc=accPct; resCompost=compost; resRecycled=recycled; resCo2=co2;
+    const plants = Math.max(1, Math.round(30*a));   // compost -> potted plants fed for a year
+    const bags   = Math.max(1, Math.round(24*a));   // recycling -> garbage bags kept out of landfill
+    const trees  = Math.max(1, Math.round(11*a));   // CO2 saved -> trees planted
+    resBadge=badge; resScore=score; resAcc=accPct; resPlants=plants; resBags=bags; resTrees=trees;
     $("certErr").textContent=""; $("certName").value=""; $("certPhone").value="";
-    const H = (lang==="gu") ? "તમારા યોગ્ય વર્ગીકરણની અસર (વર્ષે)" : "Impact of your correct sorting (per year)";
-    const t1 = (lang==="gu") ? "ભીનો કચરો ખાતરમાં ફેરવાય" : "wet waste turned into compost";
-    const t2 = (lang==="gu") ? "સૂકો કચરો રિસાયકલ થાય" : "dry waste recycled, not dumped";
-    const t3 = (lang==="gu") ? "CO₂ ઉત્સર્જન બચે" : "CO₂ emissions saved";
+    const H  = (lang==="gu") ? "તમે આખું વર્ષ આ રીતે વર્ગીકરણ કરો તો" : "If your home sorts like this all year";
+    const t1 = (lang==="gu") ? "કૂંડાના છોડને ખાતર મળે"        : "potted plants fed with your compost";
+    const t2 = (lang==="gu") ? "કચરાની થેલીઓ લેન્ડફિલથી બચે"   : "garbage bags kept out of the landfill";
+    const t3 = (lang==="gu") ? "ઝાડ વાવ્યા બરાબર CO₂ બચે"      : "trees' worth of CO₂ saved";
     $("impact").innerHTML =
       "<div class='imp-h'>"+H+"</div>"+
-      "<div class='imp-row'><span class='imp-ico'>🌱</span><div><span class='imp-num'>~"+compost+" kg</span><div class='imp-txt'>"+t1+"</div></div></div>"+
-      "<div class='imp-row'><span class='imp-ico'>♻️</span><div><span class='imp-num'>~"+recycled+" kg</span><div class='imp-txt'>"+t2+"</div></div></div>"+
-      "<div class='imp-row'><span class='imp-ico'>💨</span><div><span class='imp-num'>~"+co2+" kg</span><div class='imp-txt'>"+t3+"</div></div></div>";
+      "<div class='imp-row'><span class='imp-ico'>🌱</span><div><span class='imp-num'>~"+plants+" "+(lang==="gu"?"છોડ":"plants")+"</span><div class='imp-txt'>"+t1+"</div></div></div>"+
+      "<div class='imp-row'><span class='imp-ico'>♻️</span><div><span class='imp-num'>~"+bags+" "+(lang==="gu"?"થેલી":"bags")+"</span><div class='imp-txt'>"+t2+"</div></div></div>"+
+      "<div class='imp-row'><span class='imp-ico'>🌳</span><div><span class='imp-num'>~"+trees+" "+(lang==="gu"?"ઝાડ":"trees")+"</span><div class='imp-txt'>"+t3+"</div></div></div>";
     $("endOverlay").classList.remove("hidden");
   }
 
@@ -890,33 +892,43 @@
     x.fillStyle="#1f9d55"; x.font='800 64px "IBM Plex Sans",system-ui,sans-serif'; x.fillText(resBadge?resBadge.en:"",W/2,745);
     x.fillStyle="#17211c"; x.font='800 128px "IBM Plex Sans",system-ui,sans-serif'; x.fillText(resScore+" pts",W/2,905);
     x.fillStyle="#6b7770"; x.font='600 50px "IBM Plex Sans",system-ui,sans-serif'; x.fillText(resAcc+"% accuracy",W/2,975);
-    x.fillStyle="#16773f"; x.font='700 42px "IBM Plex Sans",system-ui,sans-serif';
-    x.fillText("🌱 "+resCompost+"kg compost   ♻️ "+resRecycled+"kg recycled",W/2,1110);
-    x.fillText("💨 "+resCo2+"kg CO₂ saved every year",W/2,1175);
+    x.fillStyle="#16773f"; x.font='700 40px "IBM Plex Sans",system-ui,sans-serif';
+    x.fillText("🌱 feeds ~"+resPlants+" plants   ♻️ ~"+resBags+" bags saved",W/2,1108);
+    x.fillText("🌳 ~"+resTrees+" trees' worth of CO₂ saved / year",W/2,1172);
     x.fillStyle="#6b7770"; x.font='600 42px "IBM Plex Sans",system-ui,sans-serif'; x.fillText("Play free: "+SITE_URL,W/2,1265);
     return c;
   }
+  function fitFont(x, text, maxW, base, weight){
+    let s=base;
+    for(; s>16; s-=2){ x.font=weight+" "+s+'px "IBM Plex Sans","Noto Sans Gujarati",system-ui,sans-serif'; if(x.measureText(text).width<=maxW) break; }
+    return s;
+  }
   function makeCertCanvas(name){
-    const W=1080,H=1400,c=document.createElement("canvas"); c.width=W;c.height=H; const x=c.getContext("2d");
+    const W=1080,H=1500,MID=W/2,c=document.createElement("canvas"); c.width=W;c.height=H; const x=c.getContext("2d");
+    const maxW = W-2*110;   // keep all text inside the borders (110px side margin)
     x.fillStyle="#faf8f0"; x.fillRect(0,0,W,H);
-    x.strokeStyle="#1f9d55"; x.lineWidth=14; rr(x,40,40,W-80,H-80,28); x.stroke();
-    x.strokeStyle="#c9a24a"; x.lineWidth=4; rr(x,72,72,W-144,H-144,18); x.stroke();
-    x.textAlign="center";
-    if(logoImg.complete && logoImg.naturalWidth){ const lw=280, lh=lw*logoImg.naturalHeight/logoImg.naturalWidth; x.drawImage(logoImg,(W-lw)/2,120,lw,lh); }
-    x.fillStyle="#17211c"; x.font='800 60px "IBM Plex Sans",system-ui,sans-serif'; x.fillText("Certificate of",W/2,395);
-    x.fillStyle="#1f9d55"; x.fillText("Green Citizenship",W/2,470);
-    x.fillStyle="#6b7770"; x.font='500 40px "IBM Plex Sans",system-ui,sans-serif'; x.fillText("proudly awarded to",W/2,600);
-    x.fillStyle="#17211c"; x.font='800 80px "IBM Plex Sans","Noto Sans Gujarati",system-ui,sans-serif'; x.fillText(name,W/2,712);
-    x.strokeStyle="#c9a24a"; x.lineWidth=3; x.beginPath(); x.moveTo(W/2-300,742); x.lineTo(W/2+300,742); x.stroke();
-    x.font='118px system-ui,"Apple Color Emoji","Noto Color Emoji",sans-serif'; x.fillText(resBadge?resBadge.icon:"🌱",W/2,895);
-    x.fillStyle="#1f9d55"; x.font='800 58px "IBM Plex Sans",system-ui,sans-serif'; x.fillText(resBadge?resBadge.en:"",W/2,980);
+    x.strokeStyle="#1f9d55"; x.lineWidth=14; rr(x,40,40,W-80,H-80,30); x.stroke();
+    x.strokeStyle="#c9a24a"; x.lineWidth=4; rr(x,74,74,W-148,H-148,20); x.stroke();
+    x.textAlign="center"; x.textBaseline="alphabetic";
+    if(logoImg.complete && logoImg.naturalWidth){ const lw=300, lh=lw*logoImg.naturalHeight/logoImg.naturalWidth; x.drawImage(logoImg,(W-lw)/2,140,lw,lh); }
+    x.fillStyle="#17211c"; x.font='800 60px "IBM Plex Sans",system-ui,sans-serif'; x.fillText("Certificate of",MID,410);
+    x.fillStyle="#1f9d55"; x.fillText("Green Citizenship",MID,485);
+    x.fillStyle="#6b7770"; x.font='500 40px "IBM Plex Sans",system-ui,sans-serif'; x.fillText("proudly awarded to",MID,610);
+    // name (auto-fit to stay inside borders) + underline matched to its width
+    const ns=fitFont(x,name,maxW,84,"800"); x.font='800 '+ns+'px "IBM Plex Sans","Noto Sans Gujarati",system-ui,sans-serif';
+    x.fillStyle="#17211c"; x.fillText(name,MID,712);
+    const uw=Math.min(maxW/2, x.measureText(name).width/2+34);
+    x.strokeStyle="#c9a24a"; x.lineWidth=3; x.beginPath(); x.moveTo(MID-uw,742); x.lineTo(MID+uw,742); x.stroke();
+    x.fillStyle="#17211c"; x.font='112px system-ui,"Apple Color Emoji","Noto Color Emoji",sans-serif'; x.fillText(resBadge?resBadge.icon:"🌱",MID,890);
+    x.fillStyle="#1f9d55"; x.font='800 56px "IBM Plex Sans",system-ui,sans-serif'; x.fillText(resBadge?resBadge.en:"",MID,975);
     x.fillStyle="#17211c"; x.font='500 40px "IBM Plex Sans",system-ui,sans-serif';
-    x.fillText("for mastering waste segregation in",W/2,1070);
-    x.fillText('"Sort It Right" with '+resScore+" points ("+resAcc+"%)",W/2,1125);
+    x.fillText("for mastering waste segregation in",MID,1075);
+    x.fillText('"Sort It Right" with '+resScore+" points ("+resAcc+"%)",MID,1130);
     const d=new Date().toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric"});
-    x.fillStyle="#6b7770"; x.font='500 36px "IBM Plex Sans",system-ui,sans-serif'; x.fillText(d,W/2,1235);
-    x.fillStyle="#17211c"; x.font='700 40px "IBM Plex Sans",system-ui,sans-serif'; x.fillText("India Recycles",W/2,1300);
-    x.fillStyle="#6b7770"; x.font='500 32px "IBM Plex Sans",system-ui,sans-serif'; x.fillText("Ahmedabad Municipal Corporation (AMC)",W/2,1345);
+    x.fillStyle="#6b7770"; x.font='500 36px "IBM Plex Sans",system-ui,sans-serif'; x.fillText(d,MID,1255);
+    x.fillStyle="#17211c"; x.font='700 42px "IBM Plex Sans",system-ui,sans-serif'; x.fillText("India Recycles",MID,1325);
+    const amc="Ahmedabad Municipal Corporation (AMC)"; const as=fitFont(x,amc,maxW,32,"500"); x.font='500 '+as+'px "IBM Plex Sans",system-ui,sans-serif';
+    x.fillStyle="#6b7770"; x.fillText(amc,MID,1378);
     return c;
   }
   function canvasBlob(c){ return new Promise(r=> c.toBlob(r,"image/png",0.95)); }
