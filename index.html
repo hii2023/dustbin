@@ -132,6 +132,17 @@
   @keyframes handIdle { 0%,100%{transform:translateY(0) rotate(0)} 50%{transform:translateY(-6px) rotate(-5deg)} }
   .hand-shadow { width: 90px; height: 12px; margin-top: -4px; border-radius: 50%; background: radial-gradient(ellipse at center, rgba(0,0,0,.18), transparent 70%); }
 
+  /* ---------- Aim (press-drag-throw) ---------- */
+  .play { touch-action: none; }
+  .aim-svg { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 6; display: none; }
+  .aim-svg.on { display: block; }
+  .aim-path { fill: none; stroke: #ffffff; stroke-width: 5; stroke-linecap: round; stroke-dasharray: 1 14; opacity: .95; filter: drop-shadow(0 1px 2px rgba(0,0,0,.45)); }
+  .aim-reticle { fill: rgba(57,181,74,.14); stroke: #39b54a; stroke-width: 4; }
+  .aim-reticle2 { fill: none; stroke: #ffffff; stroke-width: 3; }
+  .bin.aimed { transform: translateY(-5px) scale(1.05); }
+  .bin.aimed .body { box-shadow: 0 0 0 4px rgba(57,181,74,.95), 0 10px 20px rgba(0,0,0,.25); }
+  .bin.aimed .hood { box-shadow: 0 0 0 4px rgba(57,181,74,.95), 0 4px 7px rgba(0,0,0,.26); }
+
   .held.hidden-item .bubble { opacity: 0; transform: scale(.5) translateY(8px); transition: opacity .12s, transform .12s; }
   .held.enter .bubble { animation: pop .4s cubic-bezier(.2,.9,.3,1.5); }
   @keyframes pop { 0%{transform:scale(.35) rotate(-8deg); opacity:0} 60%{transform:scale(1.08) rotate(2deg)} 100%{transform:scale(1) rotate(0); opacity:1} }
@@ -247,7 +258,7 @@
   <div class="progress-wrap"><div class="progress-track"><div class="progress-fill" id="progress"></div></div><div class="prog-label" id="progLabel"></div></div>
 
   <!-- Play scene -->
-  <main class="play">
+  <main class="play" id="play">
     <div class="scene">
       <svg viewBox="0 0 375 620" preserveAspectRatio="none">
         <defs>
@@ -284,7 +295,7 @@
       </svg>
     </div>
     <div class="far" id="bins"></div>
-    <div class="prompt" id="prompt" data-en="Throw it into the correct bin" data-gu="સાચા ડબ્બામાં ફેંકો">Throw it into the correct bin</div>
+    <div class="prompt" id="prompt" data-en="Drag to aim, release to throw" data-gu="ડ્રેગ કરીને નિશાન લો, છોડો એટલે ફેંકાશે">Drag to aim, release to throw</div>
 
     <div class="toast" id="toast"></div>
 
@@ -311,6 +322,11 @@
       <div class="hand-emoji" id="handEmoji">🫴</div>
       <div class="hand-shadow"></div>
     </div>
+    <svg class="aim-svg" id="aimSvg" aria-hidden="true" preserveAspectRatio="none">
+      <path id="aimPath" class="aim-path"></path>
+      <circle id="aimReticle" class="aim-reticle" r="24"></circle>
+      <circle id="aimReticle2" class="aim-reticle2" r="9"></circle>
+    </svg>
   </main>
 
   <!-- Start overlay (image-based home page) -->
@@ -542,7 +558,6 @@
         '<div class="body"><div class="l1">'+m.l1+'</div><div class="l2">AMC</div><div class="l3 gu">'+m.l3+'</div>'+SWAN+'</div>'+
         '<div class="legs"><i></i><i></i><i></i><i></i></div>'+
         '<div class="bshadow"></div>';
-      b.addEventListener("click", ()=> pickBin(key, b));
       binsWrap.appendChild(b);
     });
     applyBinLang();
@@ -767,6 +782,56 @@
   $("playAgain").addEventListener("click", ()=>{ $("endOverlay").classList.add("hidden"); $("startOverlay").classList.remove("hidden"); renderHome(); });
   document.querySelectorAll("#startOverlay .hz").forEach(z=> z.addEventListener("click", ()=> toggleBin(z.dataset.bin)));
   $("homeLogo").addEventListener("click", ()=>{ locked=false; hideError(); $("endOverlay").classList.add("hidden"); $("startOverlay").classList.remove("hidden"); renderHome(); });
+
+  // ---------- Press-drag-aim throwing ----------
+  const play=$("play"), aimSvg=$("aimSvg"), aimPath=$("aimPath"), reticle=$("aimReticle"), reticle2=$("aimReticle2");
+  let aiming=false, aimTarget=null, aox=0, aoy=0;
+  function setAimVB(){ aimSvg.setAttribute("viewBox","0 0 "+window.innerWidth+" "+window.innerHeight); }
+  setAimVB(); window.addEventListener("resize", setAimVB);
+  function playActive(){ return $("startOverlay").classList.contains("hidden") && $("endOverlay").classList.contains("hidden") && !errorCard.classList.contains("show"); }
+  function clearAimHi(){ binsWrap.querySelectorAll(".bin.aimed").forEach(b=>b.classList.remove("aimed")); }
+
+  function updateAim(px,py){
+    let target=null;
+    if(py - aoy < -30){
+      const aimAng=Math.atan2(py-aoy, px-aox); let best=Infinity;
+      binsWrap.querySelectorAll(".bin").forEach(b=>{
+        const r=b.getBoundingClientRect(), bx=r.left+r.width/2, by=r.top+r.height*0.42;
+        const d=Math.abs(Math.atan2(by-aoy,bx-aox)-aimAng);
+        if(d<best){ best=d; target=b; }
+      });
+    }
+    aimTarget=target; clearAimHi();
+    if(target){
+      target.classList.add("aimed");
+      const ar=(target.querySelector(".arch")||target).getBoundingClientRect();
+      const tx=ar.left+ar.width/2, ty=ar.top+ar.height*0.5;
+      const cx=(aox+tx)/2, cy=Math.min(aoy,ty)-130;
+      aimPath.setAttribute("d","M "+aox+" "+aoy+" Q "+cx+" "+cy+" "+tx+" "+ty);
+      reticle.setAttribute("cx",tx); reticle.setAttribute("cy",ty);
+      reticle2.setAttribute("cx",tx); reticle2.setAttribute("cy",ty);
+      reticle.style.display=""; reticle2.style.display="";
+    } else {
+      aimPath.setAttribute("d","M "+aox+" "+aoy+" L "+px+" "+py);
+      reticle.style.display="none"; reticle2.style.display="none";
+    }
+  }
+  play.addEventListener("pointerdown", e=>{
+    if(locked || !playActive()) return;
+    const bub=held.querySelector(".bubble").getBoundingClientRect();
+    aox=bub.left+bub.width/2; aoy=bub.top+bub.height/2;
+    aiming=true; aimSvg.classList.add("on");
+    try{ play.setPointerCapture(e.pointerId); }catch(_){}
+    updateAim(e.clientX,e.clientY); e.preventDefault();
+  });
+  play.addEventListener("pointermove", e=>{ if(aiming){ updateAim(e.clientX,e.clientY); e.preventDefault(); } });
+  function endAim(doThrow){
+    if(!aiming) return; aiming=false; aimSvg.classList.remove("on");
+    const t=aimTarget; clearAimHi();
+    if(doThrow && t) pickBin(t.dataset.bin, t);
+  }
+  play.addEventListener("pointerup", e=>{ endAim(true); });
+  play.addEventListener("pointercancel", ()=>{ endAim(false); });
   $("langBtn").addEventListener("click", ()=>{
     lang = lang==="both" ? "en" : lang==="en" ? "gu" : "both";
     localStorage.setItem("sortItRightLang", lang); applyLang();
