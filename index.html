@@ -815,45 +815,45 @@
   document.querySelectorAll("#startOverlay .hz").forEach(z=> z.addEventListener("click", ()=> toggleBin(z.dataset.bin)));
   $("homeLogo").addEventListener("click", ()=>{ locked=false; hideError(); $("endOverlay").classList.add("hidden"); $("startOverlay").classList.remove("hidden"); renderHome(); });
 
-  // ---------- Press-drag-aim throwing ----------
-  const play=$("play"), aimSvg=$("aimSvg"), aimPath=$("aimPath"), reticle=$("aimReticle"), reticle2=$("aimReticle2");
-  let aiming=false, aimTarget=null, aox=0, aoy=0;
+  // ---------- Press-drag-aim throwing (smooth, horizontal snap to bins) ----------
+  const play=$("play"), aimSvg=$("aimSvg"), aimPath=$("aimPath"), reticle=$("aimReticle"), reticle2=$("aimReticle2"), aimGrip=$("aimGrip");
+  let aiming=false, aimTarget=null, aox=0, aoy=0, binRects=[];
   function setAimVB(){ aimSvg.setAttribute("viewBox","0 0 "+window.innerWidth+" "+window.innerHeight); }
   setAimVB(); window.addEventListener("resize", setAimVB);
   function playActive(){ return $("startOverlay").classList.contains("hidden") && $("endOverlay").classList.contains("hidden") && !errorCard.classList.contains("show"); }
   function clearAimHi(){ binsWrap.querySelectorAll(".bin.aimed").forEach(b=>b.classList.remove("aimed")); }
 
-  function updateAim(px,py){
-    // Always snap the aim to a real bin (never empty space).
-    const dx=px-aox, dy=py-aoy, dist=Math.hypot(dx,dy);
-    const aimAng = (dist < 45) ? -Math.PI/2 : Math.atan2(dy,dx);  // default: straight up on press
-    let target=null, best=Infinity;
-    binsWrap.querySelectorAll(".bin").forEach(b=>{
-      const r=b.getBoundingClientRect(), bx=r.left+r.width/2, by=r.top+r.height*0.42;
-      let d=Math.abs(Math.atan2(by-aoy,bx-aox)-aimAng);
-      if(d<best){ best=d; target=b; }
+  function cacheBins(){
+    binRects = [...binsWrap.querySelectorAll(".bin")].map(b=>{
+      const r=b.getBoundingClientRect();
+      const a=(b.querySelector(".arch")||b).getBoundingClientRect();
+      return { el:b, cx:r.left+r.width/2, tx:a.left+a.width/2, ty:a.top+a.height*0.5 };
     });
-    aimTarget=target; clearAimHi();
-    if(target){
-      target.classList.add("aimed");
-      const ar=(target.querySelector(".arch")||target).getBoundingClientRect();
-      const tx=ar.left+ar.width/2, ty=ar.top+ar.height*0.5;
-      const cx=(aox+tx)/2, cy=Math.min(aoy,ty)-130;
-      aimPath.setAttribute("d","M "+aox+" "+aoy+" Q "+cx+" "+cy+" "+tx+" "+ty);
-      reticle.setAttribute("cx",tx); reticle.setAttribute("cy",ty);
-      reticle2.setAttribute("cx",tx); reticle2.setAttribute("cy",ty);
-      $("aimGrip").setAttribute("cx",aox); $("aimGrip").setAttribute("cy",aoy);
-    }
   }
+  // pick bin by horizontal position (drag left = left bin), always a real bin
+  function applyAim(px){
+    if(!binRects.length) return;
+    const minx=binRects[0].cx, maxx=binRects[binRects.length-1].cx;
+    const cpx=Math.max(minx-60,Math.min(maxx+60,px));
+    let t=binRects[0], best=Infinity;
+    for(const b of binRects){ const d=Math.abs(b.cx-cpx); if(d<best){ best=d; t=b; } }
+    if(aimTarget!==t.el){ clearAimHi(); t.el.classList.add("aimed"); aimTarget=t.el; }
+    const tx=t.tx, ty=t.ty, cx=(aox+tx)/2, cy=Math.min(aoy,ty)-130;
+    aimPath.setAttribute("d","M "+aox+" "+aoy+" Q "+cx+" "+cy+" "+tx+" "+ty);
+    reticle.setAttribute("cx",tx); reticle.setAttribute("cy",ty);
+    reticle2.setAttribute("cx",tx); reticle2.setAttribute("cy",ty);
+    aimGrip.setAttribute("cx",aox); aimGrip.setAttribute("cy",aoy);
+  }
+
   play.addEventListener("pointerdown", e=>{
     if(locked || !playActive()) return;
     const bub=held.querySelector(".bubble").getBoundingClientRect();
     aox=bub.left+bub.width/2; aoy=bub.top+bub.height/2;
-    aiming=true; aimSvg.classList.add("on");
+    cacheBins(); aiming=true; aimSvg.classList.add("on"); aimTarget=null;
     try{ play.setPointerCapture(e.pointerId); }catch(_){}
-    updateAim(e.clientX,e.clientY); e.preventDefault();
-  });
-  play.addEventListener("pointermove", e=>{ if(aiming){ updateAim(e.clientX,e.clientY); e.preventDefault(); } });
+    applyAim(e.clientX); e.preventDefault();
+  }, {passive:false});
+  play.addEventListener("pointermove", e=>{ if(aiming){ applyAim(e.clientX); e.preventDefault(); } }, {passive:false});
   function endAim(doThrow){
     if(!aiming) return; aiming=false; aimSvg.classList.remove("on");
     const t=aimTarget; clearAimHi();
@@ -861,9 +861,21 @@
   }
   play.addEventListener("pointerup", e=>{ endAim(true); });
   play.addEventListener("pointercancel", ()=>{ endAim(false); });
+  play.addEventListener("lostpointercapture", ()=>{ if(aiming) endAim(true); });
 
   // ---------- Share result + Certificate ----------
   const SITE_URL = "hii2023.github.io/dustbin";
+  const SB_URL = "https://sqosmiifjqecidxhyjtg.supabase.co";
+  const SB_KEY = "sb_publishable_mq6t15oAQU7f4ZAjXQZA5w_ELcgDfbt";
+  function saveLead(name, phone){
+    try{
+      fetch(SB_URL+"/rest/v1/rpc/add_sortitright_lead", {
+        method:"POST",
+        headers:{ "apikey":SB_KEY, "Authorization":"Bearer "+SB_KEY, "Content-Type":"application/json" },
+        body: JSON.stringify({ p_name:name, p_phone:phone, p_badge:(resBadge?resBadge.en:null), p_score:resScore, p_accuracy:resAcc, p_bins:selected.join(","), p_lang:lang })
+      }).catch(()=>{});
+    }catch(e){}
+  }
   const logoImg = new Image(); logoImg.src = "assets/india-recycles-logo.png";
   function rr(x,rx,ry,w,h,r){ x.beginPath(); x.moveTo(rx+r,ry); x.arcTo(rx+w,ry,rx+w,ry+h,r); x.arcTo(rx+w,ry+h,rx,ry+h,r); x.arcTo(rx,ry+h,rx,ry,r); x.arcTo(rx,ry,rx+w,ry,r); x.closePath(); }
 
@@ -928,6 +940,7 @@
     if(name.length<2){ err.textContent=(lang==="gu"?"કૃપા કરી નામ લખો":"Please enter your name"); return; }
     if(!/^\d{10}$/.test(phone)){ err.textContent=(lang==="gu"?"10 અંકનો સાચો ફોન નંબર લખો":"Enter a valid 10-digit phone number"); return; }
     err.textContent="";
+    saveLead(name, phone);
     currentCert=makeCertCanvas(name);
     $("certImg").src=currentCert.toDataURL("image/png");
     $("certOverlay").classList.remove("hidden");
