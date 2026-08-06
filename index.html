@@ -20,7 +20,9 @@
     font-family: "IBM Plex Sans", "Noto Sans Gujarati", system-ui, sans-serif;
     background: var(--bg2); color: var(--ink);
     display: flex; justify-content: center; min-height: 100dvh; overflow: hidden;
+    -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent;
   }
+  input, textarea { -webkit-user-select: text; user-select: text; }
   .gu { font-family: "Noto Sans Gujarati", "IBM Plex Sans", sans-serif; }
   .app { width: 100%; max-width: 480px; min-height: 100dvh; display: flex; flex-direction: column; position: relative; }
 
@@ -140,6 +142,7 @@
   .aim-reticle { fill: rgba(57,181,74,.14); stroke: #39b54a; stroke-width: 4; }
   .aim-reticle2 { fill: none; stroke: #ffffff; stroke-width: 3; }
   .aim-grip { fill: #fff; stroke: #39b54a; stroke-width: 4; filter: drop-shadow(0 2px 3px rgba(0,0,0,.35)); }
+  .aim-label { position: fixed; transform: translate(-50%,-50%); background: #1f9d55; color: #fff; font-weight: 800; font-size: 15px; padding: 6px 16px; border-radius: 999px; z-index: 7; pointer-events: none; display: none; box-shadow: 0 4px 12px rgba(0,0,0,.3); white-space: nowrap; }
   .bin.aimed { transform: translateY(-5px) scale(1.05); }
   .bin.aimed .body { box-shadow: 0 0 0 4px rgba(57,181,74,.95), 0 10px 20px rgba(0,0,0,.25); }
   .bin.aimed .hood { box-shadow: 0 0 0 4px rgba(57,181,74,.95), 0 4px 7px rgba(0,0,0,.26); }
@@ -345,6 +348,7 @@
       <circle id="aimReticle" class="aim-reticle" r="24"></circle>
       <circle id="aimReticle2" class="aim-reticle2" r="9"></circle>
     </svg>
+    <div class="aim-label" id="aimLabel"></div>
   </main>
 
   <!-- Start overlay (image-based home page) -->
@@ -818,8 +822,8 @@
   $("homeLogo").addEventListener("click", ()=>{ locked=false; hideError(); $("endOverlay").classList.add("hidden"); $("startOverlay").classList.remove("hidden"); renderHome(); });
 
   // ---------- Press-drag-aim throwing (smooth, horizontal snap to bins) ----------
-  const play=$("play"), aimSvg=$("aimSvg"), aimPath=$("aimPath"), reticle=$("aimReticle"), reticle2=$("aimReticle2"), aimGrip=$("aimGrip");
-  let aiming=false, aimTarget=null, aox=0, aoy=0, binRects=[];
+  const play=$("play"), aimSvg=$("aimSvg"), aimPath=$("aimPath"), reticle=$("aimReticle"), reticle2=$("aimReticle2"), aimGrip=$("aimGrip"), aimLabel=$("aimLabel");
+  let aiming=false, aimTarget=null, aox=0, aoy=0, binRects=[], curIdx=-1;
   function setAimVB(){ aimSvg.setAttribute("viewBox","0 0 "+window.innerWidth+" "+window.innerHeight); }
   setAimVB(); window.addEventListener("resize", setAimVB);
   function playActive(){ return $("startOverlay").classList.contains("hidden") && $("endOverlay").classList.contains("hidden") && !errorCard.classList.contains("show"); }
@@ -833,31 +837,39 @@
     });
   }
   // pick bin by horizontal position (drag left = left bin), always a real bin
+  // Amplified + sticky horizontal aim: a small, comfortable thumb swipe sweeps all bins,
+  // and a hysteresis band stops flicker so it's easy to hold on the bin you want.
   function applyAim(px){
     if(!binRects.length) return;
-    const minx=binRects[0].cx, maxx=binRects[binRects.length-1].cx;
-    const cpx=Math.max(minx-60,Math.min(maxx+60,px));
-    let t=binRects[0], best=Infinity;
-    for(const b of binRects){ const d=Math.abs(b.cx-cpx); if(d<best){ best=d; t=b; } }
+    const n=binRects.length;
+    const half=Math.min(window.innerWidth*0.34, 150);   // finger travel (each side) for a full sweep
+    let frac=0.5 + (px-aox)/(half*2); frac=Math.max(0,Math.min(1,frac));
+    const raw=frac*(n-1);
+    let idx = (curIdx<0 || Math.abs(raw-curIdx)>0.6) ? Math.round(raw) : curIdx;
+    idx=Math.max(0,Math.min(n-1,idx)); curIdx=idx;
+    const t=binRects[idx];
     if(aimTarget!==t.el){ clearAimHi(); t.el.classList.add("aimed"); aimTarget=t.el; }
     const tx=t.tx, ty=t.ty, cx=(aox+tx)/2, cy=Math.min(aoy,ty)-130;
     aimPath.setAttribute("d","M "+aox+" "+aoy+" Q "+cx+" "+cy+" "+tx+" "+ty);
     reticle.setAttribute("cx",tx); reticle.setAttribute("cy",ty);
     reticle2.setAttribute("cx",tx); reticle2.setAttribute("cy",ty);
     aimGrip.setAttribute("cx",aox); aimGrip.setAttribute("cy",aoy);
+    const m=BIN_META[t.el.dataset.bin];
+    aimLabel.textContent = (lang==="gu") ? m.gu : m.en;
+    aimLabel.style.left=aox+"px"; aimLabel.style.top=(aoy-76)+"px"; aimLabel.style.display="block";
   }
 
   play.addEventListener("pointerdown", e=>{
     if(locked || !playActive()) return;
     const bub=held.querySelector(".bubble").getBoundingClientRect();
     aox=bub.left+bub.width/2; aoy=bub.top+bub.height/2;
-    cacheBins(); aiming=true; aimSvg.classList.add("on"); aimTarget=null;
+    cacheBins(); aiming=true; aimSvg.classList.add("on"); aimTarget=null; curIdx=-1;
     try{ play.setPointerCapture(e.pointerId); }catch(_){}
     applyAim(e.clientX); e.preventDefault();
   }, {passive:false});
   play.addEventListener("pointermove", e=>{ if(aiming){ applyAim(e.clientX); e.preventDefault(); } }, {passive:false});
   function endAim(doThrow){
-    if(!aiming) return; aiming=false; aimSvg.classList.remove("on");
+    if(!aiming) return; aiming=false; aimSvg.classList.remove("on"); aimLabel.style.display="none";
     const t=aimTarget; clearAimHi();
     if(doThrow && t) pickBin(t.dataset.bin, t);
   }
